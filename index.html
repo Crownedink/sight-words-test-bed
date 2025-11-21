@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Spelling SightWords Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1120">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    :root {
+      /* Dark theme – kid friendly */
+      --bg: #020617;
+      --bg-alt: #0b1120;
+      --card: #0f172a;
+      --card-soft: #020617;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #f97316;            /* orange */
+      --accent-soft: rgba(249, 115, 22, 0.2);
+      --accent2: #22c55e;           /* green */
+      --danger: #f97373;
+      --success: #4ade80;
+      --border: #1f2937;
+    }
+    body.theme-light {
+      /* Light theme – playful pastel */
+      --bg: #f3f4ff;
+      --bg-alt: #e0e7ff;
+      --card: #ffffff;
+      --card-soft: #e5e7ff;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.16);
+      --accent2: #16a34a;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --border: #c7d2fe;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #1d2a5f 0%, var(--bg) 40%, #020617 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .app {
+      max-width: 960px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 1rem;
+      background: linear-gradient(90deg, var(--bg-alt), #111827);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .menu-btn {
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .app-title {
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .app-title span.icon {
+      font-size: 1.1rem;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: 5rem;
+    }
+
+    section.view {
+      display: none;
+    }
+    section.view.active {
+      display: block;
+    }
+
+    /* Side menu */
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease-out;
+      z-index: 39;
+    }
+    .menu-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
+      max-width: 80vw;
+      background: var(--bg-alt);
+      border-right: 1px solid var(--border);
+      transform: translateX(-100%);
+      transition: transform 0.2s ease-out;
+      z-index: 40;
+      padding: 1rem;
+      box-shadow: 8px 0 30px rgba(0,0,0,0.5);
+    }
+    .side-menu.open {
+      transform: translateX(0);
+    }
+    .side-menu h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+    .side-menu .menu-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .side-menu nav button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.3rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.7rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .side-menu nav button.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    button, select, input {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile::before {
+      content: '';
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 999px;
+      background: radial-gradient(circle, var(--accent-soft), transparent);
+      top: -30px;
+      right: -30px;
+      opacity: 0.6;
+    }
+    .tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      border-color: var(--accent);
+    }
+    .tile-title {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .tile-title span {
+      font-size: 1.1rem;
+    }
+    .tile-subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .subnav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin: 0.5rem 0 0.75rem;
+    }
+    .subnav button {
+      border-radius: 999px;
+    }
+    .subnav button.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .card {
+      user-select: none;
+      width: 100%;
+      height: 55vh;
+      min-height: 260px;
+      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.1), transparent), linear-gradient(180deg, var(--bg-alt), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      padding: 1rem;
+      text-align: center;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+    }
+    .card.sparkle {
+      box-shadow: 0 0 0 2px var(--success), 0 0 24px var(--success);
+      animation: sparkle 0.6s ease-out;
+    }
+    @keyframes sparkle {
+      from { box-shadow: 0 0 0 0 var(--success); }
+      to   { box-shadow: 0 0 0 14px rgba(74, 222, 128, 0); }
+    }
+
+    .word {
+      font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 800;
+      padding: 0 0.5rem;
+    }
+
+    .sentence {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+    }
+
+    .status {
+      margin-top: 0.25rem;
+    }
+
+    input[type="text"], input[type="number"] {
+      border-radius: 999px;
+      padding: 0.4rem 0.7rem;
+      min-width: 0;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn-ghost { background: transparent; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1120;
+      font-weight: 600;
+    }
+    .btn-small {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+    }
+    .btn-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .leaderboard {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .leaderboard-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.15rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .leaderboard-row span.score {
+      font-weight: 600;
+    }
+
+    .math-choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .math-choice-btn {
+      border-radius: 0.75rem;
+      padding-block: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .math-choice-btn.correct {
+      background: var(--success);
+      color: #052e16;
+      border-color: var(--success);
+    }
+    .math-choice-btn.incorrect {
+      background: var(--danger);
+      color: #450a0a;
+      border-color: var(--danger);
+    }
+
+    .math-problem {
+      font-size: clamp(2.2rem, 6vw, 3rem);
+      font-weight: 800;
+    }
+    .math-answer {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .settings-group {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: var(--card);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+    }
+    .settings-group h3 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .center-input-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 420px;
+    }
+    .center-input-wrap input {
+      width: 100%;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 640px) {
+      header {
+        justify-content: flex-start;
+      }
+      .card {
+        height: 50vh;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button id="menuToggle" class="menu-btn">☰ Menu</button>
+    <div class="app-title"><span class="icon">📚</span> Spelling SightWords</div>
+  </header>
+
+  <div id="menuOverlay" class="menu-overlay"></div>
+  <div id="sideMenu" class="side-menu">
+    <h2>Menu</h2>
+    <div class="menu-note">Choose a section to practice or adjust settings.</div>
+    <nav>
+      <button data-view="home">🏠 Home</button>
+      <button data-view="sight">🔤 Sight Words</button>
+      <button data-view="math">➕ Quick Math</button>
+      <button data-view="leaderboards">🏆 Leaderboards</button>
+      <button data-view="settings">⚙️ Settings</button>
+    </nav>
+  </div>
+
+  <main>
+    <!-- HOME VIEW -->
+    <section id="view-home" class="view active">
+      <h1>Learning Hub 🎒</h1>
+      <p class="hint">Tap a tile to start practicing sight words or math. High scores will show up here too!</p>
+
+      <div class="tile-grid">
+        <div class="tile" onclick="switchView('sight')">
+          <div>
+            <div class="tile-title"><span>🔤</span> Sight Words</div>
+            <div class="tile-subtitle">Flashcards, quiz mode, spelling, and a 60-second challenge.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Folders + TTS</span>
+            <span class="pill">Challenge 60</span>
+          </div>
+        </div>
+
+        <div class="tile" onclick="switchView('math')">
+          <div>
+            <div class="tile-title"><span>➕</span> Quick Math</div>
+            <div class="tile-subtitle">Addition, subtraction, multiplication, division, and mixed drills.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Four choices</span>
+            <span class="pill">Swipe to move</span>
+          </div>
+        </div>
+
+        <div class="tile" onclick="switchView('sight'); setSightMode('challenge');">
+          <div>
+            <div class="tile-title"><span>⏱️</span> Sight Words Challenge 60</div>
+            <div class="tile-subtitle">60 seconds of spelling-only sight word challenges.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Top 10 scores</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>🏆 Best Scores (Quick Glance)</h3>
+        <div id="homeSwTop" class="leaderboard"></div>
+        <div id="homeMathTop" class="leaderboard" style="margin-top:0.5rem;"></div>
+      </div>
+    </section>
+
+    <!-- SIGHT WORDS VIEW -->
+    <section id="view-sight" class="view">
+      <h1>🔤 Sight Words</h1>
+
+      <div class="row">
+        <label>Folder:</label>
+        <select id="folderSel"></select>
+        <span class="pill" id="countPill"></span>
+        <button id="sightMenuToggle" class="btn-small btn-ghost">Sight Words Menu ▾</button>
+      </div>
+
+      <div id="sightMenuPanel" class="stack" style="display:none;">
+        <div class="row">
+          <button id="newFolderBtn" class="btn-small">New Folder</button>
+          <button id="renameFolderBtn" class="btn-small">Rename Folder</button>
+          <button id="deleteFolderBtn" class="btn-small btn-danger">Delete Folder</button>
+        </div>
+        <div class="row">
+          <button id="exportBtn" class="btn-small">Export Words</button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+          <button id="importBtn" class="btn-small">Import Words</button>
+        </div>
+        <div class="hint">Default folders can’t be renamed or deleted, but you can add new words to them.</div>
+      </div>
+
+      <div class="subnav">
+        <button class="subnav-btn active" data-sightmode="flashcards">Flashcards</button>
+        <button class="subnav-btn" data-sightmode="quiz">Quiz Mode</button>
+        <button class="subnav-btn" data-sightmode="spelling">Spelling Mode</button>
+        <button class="subnav-btn" data-sightmode="challenge">Challenge 60</button>
+      </div>
+
+      <!-- FLASHCARDS MODE -->
+      <div id="sight-flashcards" class="sight-mode">
+        <div class="row">
+          <button id="prevBtn">⟵ Prev</button>
+          <button id="flipBtn">Flip</button>
+          <button id="nextBtn">Next ⟶</button>
+          <button id="shuffleBtn">Shuffle</button>
+          <button id="speakBtn">🔊 Speak</button>
+          <button id="spellBtn">🔤 Spell</button>
+          <select id="mode">
+            <option value="word">Show: Word</option>
+            <option value="sentence">Show: Sentence</option>
+            <option value="both" selected>Show: Both</option>
+          </select>
+        </div>
+
+        <div id="card" class="card" tabindex="0" aria-label="Flashcard">
+          <div id="word" class="word"></div>
+          <div id="sentence" class="sentence"></div>
+        </div>
+
+        <div class="row">
+          <input id="newWord" placeholder="new word" type="text">
+          <input id="newSentence" placeholder="example sentence" type="text">
+          <button id="addBtn">Add</button>
+        </div>
+        <div class="status pill" id="status"></div>
+      </div>
+
+      <!-- QUIZ MODE -->
+      <div id="sight-quiz" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Quiz Mode</strong>
+            <div class="hint">Tap the card to hear a word, then choose the correct one. Swipe to move to the next question.</div>
+          </div>
+          <button id="quizPlayBtn" class="btn-small">Play Prompt 🔊</button>
+        </div>
+        <div class="card" id="quizCard" tabindex="0">
+          <div class="word" id="quizPrompt">Tap the card to hear the word.</div>
+          <div class="sentence" id="quizSentenceHint">Swipe left or right to see the next question.</div>
+        </div>
+        <div class="math-choices">
+          <button class="math-choice-btn" data-qindex="0"></button>
+          <button class="math-choice-btn" data-qindex="1"></button>
+          <button class="math-choice-btn" data-qindex="2"></button>
+          <button class="math-choice-btn" data-qindex="3"></button>
+        </div>
+        <div class="row">
+          <span class="pill" id="quizScorePill">Score: 0</span>
+          <button id="quizNextBtn" class="btn-small">Next Question</button>
+        </div>
+      </div>
+
+      <!-- SPELLING MODE -->
+      <div id="sight-spelling" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Spelling Mode</strong>
+            <div class="hint">Listen and type the sight word. Press Enter to check. Swipe to go to the next word.</div>
+          </div>
+          <div class="row">
+            <button id="spellPlayWordBtn" class="btn-small">Play Word 🔊</button>
+            <button id="spellPlayLettersBtn" class="btn-small">Spell It 🔤</button>
+          </div>
+        </div>
+        <div class="card" id="spellCard">
+          <div class="center-input-wrap">
+            <div id="spellSentenceHint" class="hint" style="position:static;"></div>
+            <input id="spellInput" type="text" placeholder="Type the word here">
+          </div>
+        </div>
+        <div class="row">
+          <button id="spellNextBtn" class="btn-small">Next</button>
+          <span class="status pill" id="spellStatus"></span>
+        </div>
+      </div>
+
+      <!-- SIGHT WORDS CHALLENGE 60 (SPELLING ONLY) -->
+      <div id="sight-challenge" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Challenge 60 (Spelling Only)</strong>
+            <div class="hint">60 seconds. Each correct spelling = 10 points. Press Enter to submit. Next word auto-plays.</div>
+          </div>
+          <button id="swChallengePlayWordBtn" class="btn-small">Play Word 🔊</button>
+        </div>
+
+        <div class="row">
+          <button id="swChallengeStartBtn" class="btn-primary">Start Challenge</button>
+          <span class="pill" id="swChallengeTimer">Time: 60</span>
+          <span class="pill" id="swChallengeScorePill">Score: 0</span>
+        </div>
+
+        <div class="card" id="swChallengeCard">
+          <div class="center-input-wrap">
+            <div id="swChallengeSentence" class="hint" style="position:static;"></div>
+            <input id="swChallengeSpellInput" type="text" placeholder="Type the word here">
+          </div>
+        </div>
+
+        <div id="swChallengeResults" style="display:none; margin-top:0.75rem;">
+          <h3>Challenge Results</h3>
+          <div class="stack" id="swChallengeResultsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK MATH VIEW -->
+    <section id="view-math" class="view">
+      <h1>➕ Quick Math</h1>
+      <p class="hint">Practice basic math or try a 60-second sprint. Perfect for quick reps.</p>
+
+      <div class="subnav">
+        <button class="subnav-btn active" data-mathmode="practice">Practice</button>
+        <button class="subnav-btn" data-mathmode="challenge">Math Sprint 60</button>
+      </div>
+
+      <!-- PRACTICE MODE -->
+      <div id="math-practice" class="math-mode">
+        <div class="row">
+          <label>Practice:</label>
+          <select id="mathPracticeType">
+            <option value="addition">Addition</option>
+            <option value="subtraction">Subtraction</option>
+            <option value="multiplication">Multiplication</option>
+            <option value="division">Division</option>
+            <option value="mixed">Mixed</option>
+          </select>
+          <span class="pill" id="mathPracticeScorePill">Score: 0</span>
+        </div>
+
+        <div class="card" id="mathPracticeCard">
+          <div class="math-problem" id="mathPracticeProblem">2 + 3 = ?</div>
+          <div class="math-answer" id="mathPracticeAnswer">Choose an answer below.</div>
+        </div>
+
+        <div class="math-choices" id="mathPracticeChoices">
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+        </div>
+
+        <div class="hint">Swipe left/right on the card (or answer) to move to the next problem.</div>
+      </div>
+
+      <!-- MATH CHALLENGE MODE -->
+      <div id="math-challenge" class="math-mode" style="display:none;">
+        <div class="row">
+          <label>Math Sprint 60:</label>
+          <select id="mathChallengeType">
+            <option value="addition">Addition</option>
+            <option value="subtraction">Subtraction</option>
+            <option value="multiplication">Multiplication</option>
+            <option value="division">Division</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+        <div class="row">
+          <button id="mathChallengeStartBtn" class="btn-primary">Start Sprint</button>
+          <span class="pill" id="mathChallengeTimer">Time: 60</span>
+          <span class="pill" id="mathChallengeScorePill">Score: 0</span>
+        </div>
+
+        <div class="card" id="mathChallengeCard">
+          <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
+          <div class="math-answer" id="mathChallengeAnswer"></div>
+        </div>
+
+        <div class="math-choices" id="mathChallengeChoices">
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+        </div>
+
+        <div id="mathChallengeResults" style="display:none; margin-top:0.75rem;">
+          <h3>Results</h3>
+          <div class="stack" id="mathChallengeResultsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARDS VIEW -->
+    <section id="view-leaderboards" class="view">
+      <h1>🏆 Leaderboards</h1>
+      <div class="settings-group">
+        <h3>🔤 Sight Words Challenge</h3>
+        <div id="swLeaderboardPage" class="leaderboard"></div>
+      </div>
+      <div class="settings-group">
+        <h3>➕ Quick Math</h3>
+        <div id="mathLeaderboardsPage" class="stack"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+      <h1>⚙️ Settings</h1>
+      <div class="settings-group">
+        <h3>Theme</h3>
+        <div class="row">
+          <button id="themeDarkBtn" class="btn-small">Dark Mode</button>
+          <button id="themeLightBtn" class="btn-small">Light Mode</button>
+        </div>
+        <div class="hint">Theme preference is saved on this device.</div>
+      </div>
+
+      <div class="settings-group">
+        <h3>App Info</h3>
+        <p class="hint">Practice sight words and basic math. Install on your device for offline use.</p>
+        <button class="btn-small" onclick="location.href='how-to-install.html'">How to install</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // --- Service worker registration ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
+    });
+  }
+
+  // --- Theme handling ---
+  const THEME_KEY = 'sw_theme';
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-dark', 'theme-light');
+    if (theme === 'light') document.body.classList.add('theme-light');
+    else document.body.classList.add('theme-dark');
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  applyTheme(savedTheme);
+  document.getElementById('themeDarkBtn').onclick = function () { applyTheme('dark'); };
+  document.getElementById('themeLightBtn').onclick = function () { applyTheme('light'); };
+
+  // --- Slide-out menu ---
+  const sideMenu = document.getElementById('sideMenu');
+  const menuOverlay = document.getElementById('menuOverlay');
+  const menuToggle = document.getElementById('menuToggle');
+  const menuLinks = sideMenu.querySelectorAll('button[data-view]');
+
+  function openMenu() {
+    sideMenu.classList.add('open');
+    menuOverlay.classList.add('show');
+  }
+  function closeMenu() {
+    sideMenu.classList.remove('open');
+    menuOverlay.classList.remove('show');
+  }
+  menuToggle.onclick = openMenu;
+  menuOverlay.onclick = closeMenu;
+
+  function switchView(viewId) {
+    document.querySelectorAll('section.view').forEach(function (sec) {
+      sec.classList.toggle('active', sec.id === 'view-' + viewId);
+    });
+    menuLinks.forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.view === viewId);
+    });
+  }
+
+  menuLinks.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchView(btn.dataset.view);
+      closeMenu();
+    });
+  });
+
+  // --- Sight words data ---
+  const DEFAULT_SETS = {
+    "Top 20": [
+      ["the", "The cat is on the bed."],
+      ["of", "A glass of water."],
+      ["and", "You and I are friends."],
+      ["a", "I see a dog."],
+      ["to", "I go to school."],
+      ["in", "The book is in the bag."],
+      ["is", "She is happy."],
+      ["you", "You are my friend."],
+      ["that", "I like that toy."],
+      ["it", "It is raining."],
+      ["he", "He is my brother."],
+      ["was", "She was at the park."],
+      ["for", "This gift is for you."],
+      ["on", "The ball is on the table."],
+      ["are", "We are ready."],
+      ["as", "Run as fast as you can."],
+      ["with", "I play with my dog."],
+      ["his", "This is his book."],
+      ["they", "They are at school."],
+      ["I", "I can read."]
+    ],
+    "Level 2 (Early Primer, 30)": (function () {
+      const words = ["am","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","so"];
+      const sentences = {
+        "am":"I am ready.",
+        "at":"We are at home.",
+        "ate":"I ate lunch.",
+        "be":"Please be kind.",
+        "black":"The cat is black.",
+        "brown":"The bear is brown.",
+        "but":"I want to play, but I must read.",
+        "came":"She came to class.",
+        "did":"He did his work.",
+        "do":"Do your best.",
+        "eat":"We eat together.",
+        "four":"I have four books.",
+        "get":"Go get your coat.",
+        "good":"That is a good idea.",
+        "have":"We have time.",
+        "into":"Walk into the room.",
+        "like":"I like this game.",
+        "must":"You must try.",
+        "new":"This book is new.",
+        "no":"No, thank you.",
+        "now":"Read it now.",
+        "on":"The hat is on me.",
+        "our":"This is our team.",
+        "out":"Go out to play.",
+        "please":"Please help me.",
+        "pretty":"The flower is pretty.",
+        "ran":"He ran fast.",
+        "ride":"I ride my bike.",
+        "saw":"We saw a bird.",
+        "so":"It was cold, so I wore a coat."
+      };
+      return words.map(function (w) {
+        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+      });
+    })(),
+    "Level 3 (First Grade, 30)": (function () {
+      const words = ["after","again","an","any","as","ask","by","could","every","fly","from","give","going","had","has","her","him","how","just","know","let","live","many","old","once","open","over","put","round","some"];
+      const sentences = {
+        "after":"After lunch we read.",
+        "again":"Try again.",
+        "an":"I ate an apple.",
+        "any":"Do you have any?",
+        "as":"Run as fast as you can.",
+        "ask":"Ask a question.",
+        "by":"Stand by me.",
+        "could":"I could help you.",
+        "every":"Every day we learn.",
+        "fly":"Birds can fly.",
+        "from":"This is from me.",
+        "give":"Please give me a pen.",
+        "going":"We are going home.",
+        "had":"She had a snack.",
+        "has":"He has a book.",
+        "her":"This is her hat.",
+        "him":"I will help him.",
+        "how":"How are you?",
+        "just":"Just do it.",
+        "know":"I know the answer.",
+        "let":"Let me try.",
+        "live":"We live here.",
+        "many":"We saw many stars.",
+        "old":"That car is old.",
+        "once":"Once we went camping.",
+        "open":"Open the door.",
+        "over":"Jump over the line.",
+        "put":"Put it away.",
+        "round":"Draw a round circle.",
+        "some":"I have some water."
+      };
+      return words.map(function (w) {
+        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+      });
+    })()
+  };
+
+  const STORAGE_KEY_SETS = 'sight_words_sets_json_v3';
+  let SETS = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SETS);
+    SETS = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    SETS = {};
+  }
+
+  function saveSets() {
+    localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(SETS));
+  }
+
+  const folderSel = document.getElementById('folderSel');
+  const countPill = document.getElementById('countPill');
+  const statusEl = document.getElementById('status');
+  const modeSel = document.getElementById('mode');
+  const card = document.getElementById('card');
+  const wordEl = document.getElementById('word');
+  const sentenceEl = document.getElementById('sentence');
+
+  function foldersList() {
+    const defNames = Object.keys(DEFAULT_SETS);
+    const customNames = Object.keys(SETS).filter(function (n) { return defNames.indexOf(n) === -1; });
+    return defNames.concat(customNames);
+  }
+
+  function selectFolderOptions() {
+    const current = folderSel.value;
+    folderSel.innerHTML = '';
+    foldersList().forEach(function (name) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      folderSel.appendChild(opt);
+    });
+    if (foldersList().indexOf(current) !== -1) folderSel.value = current;
+    else folderSel.value = foldersList()[0];
+  }
+
+  function getFolderData(name) {
+    const base = DEFAULT_SETS[name] || [];
+    const custom = SETS[name] || [];
+    return base.concat(custom);
+  }
+
+  let activeFolder = "Top 20";
+  selectFolderOptions();
+  if (foldersList().indexOf(activeFolder) === -1) activeFolder = foldersList()[0];
+
+  let data = getFolderData(activeFolder);
+  let order = data.map(function (_, idx) { return idx; });
+  let i = 0;
+  let flipped = false;
+
+  function shuffleOrder(arr) {
+    for (let j = arr.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      const tmp = arr[j];
+      arr[j] = arr[k];
+      arr[k] = tmp;
+    }
+  }
+
+  function updateCount() {
+    countPill.textContent = data.length + " cards";
+  }
+
+  function renderFlashcard() {
+    if (!data.length) {
+      wordEl.textContent = "(empty)";
+      sentenceEl.textContent = "Add words to this folder, or choose another folder.";
+      statusEl.textContent = "Card 0 / 0 • " + activeFolder;
+      updateCount();
+      return;
+    }
+    const idx = order[i];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
+    const mode = modeSel.value;
+    if (mode === 'word') {
+      wordEl.textContent = w;
+      sentenceEl.textContent = flipped ? s : '';
+    } else if (mode === 'sentence') {
+      wordEl.textContent = flipped ? w : '';
+      sentenceEl.textContent = s;
+    } else {
+      wordEl.textContent = w;
+      sentenceEl.textContent = s;
+    }
+    statusEl.textContent = "Card " + (i + 1) + " / " + data.length + " • " + activeFolder;
+    updateCount();
+  }
+
+  function flipFlashcard() { flipped = !flipped; renderFlashcard(); }
+  function nextFlashcard() {
+    if (!data.length) return;
+    i = (i + 1) % data.length;
+    flipped = false;
+    renderFlashcard();
+  }
+  function prevFlashcard() {
+    if (!data.length) return;
+    i = (i - 1 + data.length) % data.length;
+    flipped = false;
+    renderFlashcard();
+  }
+  function shuffleFlashcards() {
+    order = data.map(function (_, idx) { return idx; });
+    shuffleOrder(order);
+    i = 0;
+    flipped = false;
+    renderFlashcard();
+  }
+
+  document.getElementById('prevBtn').onclick = prevFlashcard;
+  document.getElementById('nextBtn').onclick = nextFlashcard;
+  document.getElementById('flipBtn').onclick = flipFlashcard;
+  document.getElementById('shuffleBtn').onclick = shuffleFlashcards;
+  modeSel.onchange = function () { flipped = false; renderFlashcard(); };
+
+  card.addEventListener('click', flipFlashcard);
+  card.addEventListener('keydown', function (e) {
+    if (e.key === ' ' || e.key.toLowerCase() === 'f') { e.preventDefault(); flipFlashcard(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextFlashcard(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevFlashcard(); }
+  });
+
+  folderSel.onchange = function () {
+    activeFolder = folderSel.value;
+    data = getFolderData(activeFolder);
+    order = data.map(function (_, idx) { return idx; });
+    i = 0;
+    flipped = false;
+    renderFlashcard();
+    resetQuizState();
+    resetSpellingState();
+  };
+
+  document.getElementById('addBtn').onclick = function () {
+    const w = document.getElementById('newWord').value.trim();
+    const s = document.getElementById('newSentence').value.trim();
+    if (!w || !s) return;
+    if (!SETS[activeFolder]) SETS[activeFolder] = [];
+    SETS[activeFolder].push([w, s]);
+    saveSets();
+    data = getFolderData(activeFolder);
+    order = data.map(function (_, idx) { return idx; });
+    i = data.length - 1;
+    flipped = false;
+    document.getElementById('newWord').value = '';
+    document.getElementById('newSentence').value = '';
+    renderFlashcard();
+    resetQuizState();
+    resetSpellingState();
+  };
+
+  // Sight words menu
+  const sightMenuToggle = document.getElementById('sightMenuToggle');
+  const sightMenuPanel = document.getElementById('sightMenuPanel');
+  sightMenuToggle.onclick = function () {
+    if (sightMenuPanel.style.display === 'none' || sightMenuPanel.style.display === '') {
+      sightMenuPanel.style.display = 'block';
+    } else {
+      sightMenuPanel.style.display = 'none';
+    }
+  };
+
+  document.getElementById('newFolderBtn').onclick = function () {
+    const name = prompt('New folder name:');
+    if (!name) return;
+    if (SETS[name] || DEFAULT_SETS[name]) {
+      alert('Folder already exists.');
+      return;
+    }
+    SETS[name] = [];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = name;
+    folderSel.onchange();
+  };
+  document.getElementById('renameFolderBtn').onclick = function () {
+    if (!SETS[activeFolder]) {
+      alert('Default folders cannot be renamed.');
+      return;
+    }
+    const newName = prompt('Rename folder:', activeFolder);
+    if (!newName || newName === activeFolder) return;
+    if (SETS[newName] || DEFAULT_SETS[newName]) {
+      alert('That name already exists.');
+      return;
+    }
+    SETS[newName] = SETS[activeFolder];
+    delete SETS[activeFolder];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = newName;
+    folderSel.onchange();
+  };
+  document.getElementById('deleteFolderBtn').onclick = function () {
+    if (!SETS[activeFolder]) {
+      alert('Default folders cannot be deleted.');
+      return;
+    }
+    if (!confirm('Delete folder "' + activeFolder + '"? This cannot be undone.')) return;
+    delete SETS[activeFolder];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = "Top 20";
+    folderSel.onchange();
+  };
+
+  // Import / Export
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+  function downloadFile(filename, text) {
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  exportBtn.onclick = function () {
+    downloadFile('sight_words_sets.json', JSON.stringify({ sets: SETS }, null, 2));
+  };
+  importBtn.onclick = function () { importFile.click(); };
+  importFile.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      try {
+        const parsed = JSON.parse(reader.result);
+        let incoming = {};
+        if (parsed && parsed.sets && typeof parsed.sets === 'object') {
+          incoming = parsed.sets;
+        } else if (Array.isArray(parsed)) {
+          incoming = { Imported: parsed };
+        } else throw new Error('Invalid file format');
+        for (const folder in incoming) {
+          if (!Object.prototype.hasOwnProperty.call(incoming, folder)) continue;
+          const items = incoming[folder];
+          if (!Array.isArray(items)) continue;
+          if (!SETS[folder]) SETS[folder] = [];
+          const key = function (w, s) {
+            return String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase();
+          };
+          const existing = new Set(SETS[folder].map(function (pair) {
+            return key(pair[0], pair[1]);
+          }));
+          for (let idx = 0; idx < items.length; idx++) {
+            const item = items[idx];
+            if (Array.isArray(item) && item.length >= 2) {
+              const w = String(item[0]).trim();
+              const s = String(item[1]).trim();
+              const k = key(w, s);
+              if (!existing.has(k)) {
+                SETS[folder].push([w, s]);
+                existing.add(k);
+              }
+            }
+          }
+        }
+        saveSets();
+        selectFolderOptions();
+        folderSel.onchange();
+        alert('Import complete.');
+        importFile.value = '';
+      } catch (err) {
+        console.error(err);
+        alert('Could not import file.');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // TTS helpers
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-Speech not supported on this device.');
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    const vs = speechSynthesis.getVoices();
+    const en = vs.find(function (v) { return v.lang && v.lang.toLowerCase().indexOf('en') === 0; });
+    if (en) u.voice = en;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+  function spellWord(text) {
+    const letters = text.split('').join(', ');
+    speak(letters + '. ' + text);
+  }
+  document.getElementById('speakBtn').onclick = function () {
+    if (!data.length) return;
+    const pair = data[order[i]];
+    const w = pair[0];
+    const s = pair[1];
+    const m = modeSel.value;
+    if (m === 'word') speak(w);
+    else if (m === 'sentence') speak(s);
+    else speak(w + '. ' + s);
+  };
+  document.getElementById('spellBtn').onclick = function () {
+    if (!data.length) return;
+    const pair = data[order[i]];
+    const w = pair[0];
+    spellWord(w);
+  };
+
+  // Sight subnav
+  const sightSubnavButtons = document.querySelectorAll('.subnav button[data-sightmode]');
+  function setSightMode(mode) {
+    sightSubnavButtons.forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.sightmode === mode);
+    });
+    document.querySelectorAll('.sight-mode').forEach(function (sec) {
+      sec.style.display = 'none';
+    });
+    document.getElementById('sight-' + mode).style.display = 'block';
+    if (mode === 'quiz') { resetQuizState(); setupQuizQuestion(); }
+    if (mode === 'spelling') { resetSpellingState(); }
+    if (mode === 'challenge') { resetSwChallengeState(); }
+  }
+  sightSubnavButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () { setSightMode(btn.dataset.sightmode); });
+  });
+
+  // Quiz mode
+  let quizState = { order: [], currentIndex: 0, score: 0 };
+  const quizPromptEl = document.getElementById('quizPrompt');
+  const quizSentenceHintEl = document.getElementById('quizSentenceHint');
+  const quizScorePill = document.getElementById('quizScorePill');
+  const quizChoiceButtons = Array.from(document.querySelectorAll('#sight-quiz .math-choice-btn'));
+  const quizNextBtn = document.getElementById('quizNextBtn');
+  const quizPlayBtn = document.getElementById('quizPlayBtn');
+  const quizCard = document.getElementById('quizCard');
+
+  function resetQuizState() {
+    quizState.order = data.map(function (_, idx) { return idx; });
+    shuffleOrder(quizState.order);
+    quizState.currentIndex = 0;
+    quizState.score = 0;
+    quizScorePill.textContent = 'Score: 0';
+    clearQuizChoices();
+  }
+  function clearQuizChoices() {
+    quizChoiceButtons.forEach(function (btn) {
+      btn.textContent = '';
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = true;
+      btn.dataset.correct = '0';
+    });
+  }
+  function setupQuizQuestion() {
+    if (!data.length) {
+      quizPromptEl.textContent = 'No cards in this folder.';
+      quizSentenceHintEl.textContent = '';
+      clearQuizChoices();
+      return;
+    }
+    if (!quizState.order.length) {
+      quizState.order = data.map(function (_, idx) { return idx; });
+      shuffleOrder(quizState.order);
+      quizState.currentIndex = 0;
+    }
+    const idx = quizState.order[quizState.currentIndex];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
+    quizPromptEl.textContent = 'Tap the card to hear the word.';
+    quizSentenceHintEl.textContent = s + '  (Swipe left or right to advance.)';
+    const allIdx = data.map(function (_, ii) { return ii; });
+    const distractors = allIdx.filter(function (j) { return j !== idx; });
+    shuffleOrder(distractors);
+    const choiceIdxs = [idx].concat(distractors.slice(0, 3));
+    shuffleOrder(choiceIdxs);
+    quizChoiceButtons.forEach(function (btn, k) {
+      if (k < choiceIdxs.length) {
+        const pair2 = data[choiceIdxs[k]];
+        const cw = pair2[0];
+        btn.textContent = cw;
+        btn.dataset.correct = (choiceIdxs[k] === idx) ? '1' : '0';
+        btn.classList.remove('correct', 'incorrect');
+        btn.disabled = false;
+      } else {
+        btn.textContent = '';
+        btn.disabled = true;
+        btn.dataset.correct = '0';
+      }
+    });
+  }
+  quizPlayBtn.onclick = function () {
+    if (!data.length) return;
+    const idx = quizState.order[quizState.currentIndex];
+    const w = data[idx][0];
+    speak(w);
+  };
+  quizCard.onclick = function () {
+    if (!data.length) return;
+    const idx = quizState.order[quizState.currentIndex];
+    const w = data[idx][0];
+    speak(w);
+  };
+  quizChoiceButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!btn.textContent) return;
+      const isCorrect = btn.dataset.correct === '1';
+      quizChoiceButtons.forEach(function (b) {
+        if (!b.textContent) return;
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      if (isCorrect) {
+        quizState.score += 10;
+        quizScorePill.textContent = 'Score: ' + quizState.score;
+      }
+    });
+  });
+  quizNextBtn.onclick = function () {
+    if (!data.length) return;
+    quizState.currentIndex = (quizState.currentIndex + 1) % data.length;
+    setupQuizQuestion();
+  };
+  // Quiz swipe
+  let quizTouchStartX = null;
+  quizCard.addEventListener('touchstart', function (e) {
+    quizTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  quizCard.addEventListener('touchend', function (e) {
+    if (quizTouchStartX === null) return;
+    const dx = e.changedTouches[0].screenX - quizTouchStartX;
+    if (Math.abs(dx) > 50) {
+      quizState.currentIndex = (quizState.currentIndex + 1) % data.length;
+      setupQuizQuestion();
+    }
+    quizTouchStartX = null;
+  }, { passive: true });
+
+  // Spelling mode
+  let spellingState = { order: [], currentIndex: 0, correctCount: 0 };
+  const spellSentenceHintEl = document.getElementById('spellSentenceHint');
+  const spellInput = document.getElementById('spellInput');
+  const spellStatusEl = document.getElementById('spellStatus');
+  const spellPlayWordBtn = document.getElementById('spellPlayWordBtn');
+  const spellPlayLettersBtn = document.getElementById('spellPlayLettersBtn');
+  const spellNextBtn = document.getElementById('spellNextBtn');
+  const spellCard = document.getElementById('spellCard');
+
+  function resetSpellingState() {
+    spellingState.order = data.map(function (_, idx) { return idx; });
+    shuffleOrder(spellingState.order);
+    spellingState.currentIndex = 0;
+    spellingState.correctCount = 0;
+    spellStatusEl.textContent = '';
+    setupSpellingQuestion();
+  }
+  function setupSpellingQuestion() {
+    if (!data.length) {
+      spellSentenceHintEl.textContent = 'No cards in this folder.';
+      return;
+    }
+    if (!spellingState.order.length) {
+      spellingState.order = data.map(function (_, idx) { return idx; });
+      shuffleOrder(spellingState.order);
+      spellingState.currentIndex = 0;
+    }
+    const idx = spellingState.order[spellingState.currentIndex];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
+    spellSentenceHintEl.textContent = s;
+    spellInput.value = '';
+    spellStatusEl.textContent = 'Word ' + (spellingState.currentIndex + 1) + ' of ' + data.length;
+  }
+  spellPlayWordBtn.onclick = function () {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const w = data[idx][0];
+    speak(w);
+  };
+  spellPlayLettersBtn.onclick = function () {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const w = data[idx][0];
+    spellWord(w);
+  };
+  function checkSpellingAnswer() {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const w = data[idx][0];
+    const answer = spellInput.value.trim().toLowerCase();
+    if (!answer) return;
+    const target = w.toLowerCase();
+    if (answer === target) {
+      spellingState.correctCount += 1;
+      spellStatusEl.textContent = 'Correct! ✅';
+    } else {
+      spellStatusEl.textContent = 'Try again or swipe to move on. The word is "' + w + '".';
+    }
+  }
+  spellInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkSpellingAnswer();
+    }
+  });
+  spellNextBtn.onclick = function () {
+    if (!data.length) return;
+    spellingState.currentIndex = (spellingState.currentIndex + 1) % data.length;
+    setupSpellingQuestion();
+  };
+  // Spelling swipe
+  let spellTouchStartX = null;
+  spellCard.addEventListener('touchstart', function (e) {
+    spellTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  spellCard.addEventListener('touchend', function (e) {
+    if (spellTouchStartX === null) return;
+    const dx = e.changedTouches[0].screenX - spellTouchStartX;
+    if (Math.abs(dx) > 50) {
+      spellingState.currentIndex = (spellingState.currentIndex + 1) % data.length;
+      setupSpellingQuestion();
+    }
+    spellTouchStartX = null;
+  }, { passive: true });
+
+  // Sight challenge 60 (spelling only)
+  const SW_CHALLENGE_KEY = 'sw_challenge_scores_v2';
+  let swChallengeScores = [];
+  try {
+    const rawSw = localStorage.getItem(SW_CHALLENGE_KEY);
+    if (rawSw) swChallengeScores = JSON.parse(rawSw);
+  } catch (e) {
+    swChallengeScores = [];
+  }
+  function saveSwChallengeScores() {
+    localStorage.setItem(SW_CHALLENGE_KEY, JSON.stringify(swChallengeScores));
+  }
+
+  const homeSwTopEl = document.getElementById('homeSwTop');
+  const swLeaderboardPageEl = document.getElementById('swLeaderboardPage');
+
+  function renderSwHomeTop() {
+    const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; });
+    if (!list.length) {
+      homeSwTopEl.innerHTML = '<div class="hint">Sight Words Challenge: no scores yet.</div>';
+      return;
+    }
+    const best = list[0];
+    homeSwTopEl.innerHTML =
+      '<div class="leaderboard-row"><span>Sight Words Challenge</span><span class="score">' +
+      best.score + ' pts (' + (best.name || 'Player') + ')</span></div>';
+  }
+  function renderSwLeaderboardPage() {
+    const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; }).slice(0, 10);
+    if (!list.length) {
+      swLeaderboardPageEl.innerHTML = '<div class="hint">No scores yet. Play Challenge 60 to set a record.</div>';
+      return;
+    }
+    swLeaderboardPageEl.innerHTML = '';
+    list.forEach(function (entry, idx) {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      row.innerHTML = '<span>' + (idx + 1) + '. ' + (entry.name || 'Player') +
+        '</span><span class="score">' + entry.score + '</span>';
+      swLeaderboardPageEl.appendChild(row);
+    });
+  }
+
+  const swChallengeStartBtn = document.getElementById('swChallengeStartBtn');
+  const swChallengeTimerEl = document.getElementById('swChallengeTimer');
+  const swChallengeScorePill = document.getElementById('swChallengeScorePill');
+  const swChallengeCard = document.getElementById('swChallengeCard');
+  const swChallengeSentenceEl = document.getElementById('swChallengeSentence');
+  const swChallengeSpellInput = document.getElementById('swChallengeSpellInput');
+  const swChallengeResults = document.getElementById('swChallengeResults');
+  const swChallengeResultsList = document.getElementById('swChallengeResultsList');
+  const swChallengePlayWordBtn = document.getElementById('swChallengePlayWordBtn');
+
+  let swChallengeState = null;
+  let swChallengeTimerId = null;
+
+  function resetSwChallengeState() {
+    if (swChallengeTimerId) {
+      clearInterval(swChallengeTimerId);
+      swChallengeTimerId = null;
+    }
+    swChallengeState = null;
+    swChallengeTimerEl.textContent = 'Time: 60';
+    swChallengeScorePill.textContent = 'Score: 0';
+    swChallengeSpellInput.value = '';
+    swChallengeSentenceEl.textContent = 'Press "Start Challenge" to begin.';
+    swChallengeResults.style.display = 'none';
+    swChallengeResultsList.innerHTML = '';
+  }
+
+  function startSwChallenge() {
+    if (!data.length) {
+      alert('No cards in this folder.');
+      return;
+    }
+    swChallengeState = {
+      score: 0,
+      remaining: 60,
+      indexOrder: data.map(function (_, idx) { return idx; }),
+      answered: [],
+      currentIdx: null
+    };
+    shuffleOrder(swChallengeState.indexOrder);
+    swChallengeScorePill.textContent = 'Score: 0';
+    swChallengeResults.style.display = 'none';
+    swChallengeResultsList.innerHTML = '';
+    swChallengeSpellInput.value = '';
+    swChallengeCard.classList.remove('sparkle');
+    if (swChallengeTimerId) clearInterval(swChallengeTimerId);
+    swChallengeTimerEl.textContent = 'Time: 60';
+    swChallengeTimerId = setInterval(function () {
+      if (!swChallengeState) return;
+      swChallengeState.remaining -= 1;
+      if (swChallengeState.remaining <= 0) {
+        swChallengeTimerEl.textContent = 'Time: 0';
+        endSwChallenge();
+      } else {
+        swChallengeTimerEl.textContent = 'Time: ' + swChallengeState.remaining;
+      }
+    }, 1000);
+    nextSwChallengeQuestion(true);
+  }
+
+  function nextSwChallengeQuestion(autoPlay) {
+    if (!swChallengeState) return;
+    if (!swChallengeState.indexOrder.length) {
+      swChallengeState.indexOrder = data.map(function (_, idx) { return idx; });
+      shuffleOrder(swChallengeState.indexOrder);
+    }
+    const idx = swChallengeState.indexOrder.pop();
+    swChallengeState.currentIdx = idx;
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
+    swChallengeSentenceEl.textContent = s;
+    swChallengeSpellInput.value = '';
+    swChallengeCard.classList.remove('sparkle');
+    if (autoPlay) speak(w);
+  }
+
+  swChallengeStartBtn.onclick = startSwChallenge;
+  swChallengePlayWordBtn.onclick = function () {
+    if (!swChallengeState || swChallengeState.currentIdx == null) return;
+    const w = data[swChallengeState.currentIdx][0];
+    speak(w);
+  };
+
+  function checkSwChallengeAnswer() {
+    if (!swChallengeState || swChallengeState.currentIdx == null) return;
+    const w = data[swChallengeState.currentIdx][0];
+    const answer = swChallengeSpellInput.value.trim().toLowerCase();
+    if (!answer) return;
+    const target = w.toLowerCase();
+    const correct = (answer === target);
+    if (correct) {
+      swChallengeState.score += 10;
+      swChallengeScorePill.textContent = 'Score: ' + swChallengeState.score;
+      swChallengeCard.classList.add('sparkle');
+    }
+    swChallengeState.answered.push({
+      question: w,
+      userAnswer: answer,
+      correctAnswer: w,
+      correct: correct
+    });
+    setTimeout(function () {
+      if (!swChallengeState) return;
+      swChallengeCard.classList.remove('sparkle');
+      nextSwChallengeQuestion(true);
+    }, 350);
+  }
+
+  swChallengeSpellInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkSwChallengeAnswer();
+    }
+  });
+
+  let swChTouchStartX = null;
+  swChallengeCard.addEventListener('touchstart', function (e) {
+    swChTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  swChallengeCard.addEventListener('touchend', function (e) {
+    if (swChTouchStartX === null) return;
+    const dx = e.changedTouches[0].screenX - swChTouchStartX;
+    if (Math.abs(dx) > 50 && swChallengeState) {
+      nextSwChallengeQuestion(true);
+    }
+    swChTouchStartX = null;
+  }, { passive: true });
+
+  function endSwChallenge() {
+    if (swChallengeTimerId) {
+      clearInterval(swChallengeTimerId);
+      swChallengeTimerId = null;
+    }
+    if (!swChallengeState) return;
+
+    const score = swChallengeState.score;
+    const answered = swChallengeState.answered;
+
+    swChallengeResults.style.display = 'block';
+    swChallengeResultsList.innerHTML = '';
+
+    answered.forEach(function (entry) {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+
+      const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
+      const mark = entry.correct ? '✅' : '❌';
+
+      row.innerHTML =
+        '<span>' + entry.question + '</span>' +
+        '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
+
+      swChallengeResultsList.appendChild(row);
+    });
+
+    const newEntry = { score: score, date: Date.now(), name: '' };
+    const combined = swChallengeScores.concat([newEntry])
+      .sort(function (a, b) { return b.score - a.score; })
+      .slice(0, 10);
+    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
+    if (isHighScore) {
+      const name = prompt('New high score! Enter a name:') || 'Player';
+      newEntry.name = name;
+    }
+    swChallengeScores = combined;
+    saveSwChallengeScores();
+    renderSwHomeTop();
+    renderSwLeaderboardPage();
+    swChallengeState = null;
+  }
+
+  // Quick math practice
+  const mathPracticeTypeSel = document.getElementById('mathPracticeType');
+  const mathPracticeScorePill = document.getElementById('mathPracticeScorePill');
+  const mathPracticeProblemEl = document.getElementById('mathPracticeProblem');
+  const mathPracticeAnswerEl = document.getElementById('mathPracticeAnswer');
+  const mathPracticeCard = document.getElementById('mathPracticeCard');
+  const mathPracticeChoiceBtns = Array.from(document.querySelectorAll('#mathPracticeChoices .math-choice-btn'));
+
+  let mathPracticeState = { type: 'addition', score: 0, current: null };
+
+  function simpleBeep(correct) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = correct ? 880 : 220;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  function generateMathProblem(type) {
+    let a, b, op, answer;
+    switch (type) {
+      case 'addition':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '+';
+        answer = a + b;
+        break;
+      case 'subtraction':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * a);
+        op = '−';
+        answer = a - b;
+        break;
+      case 'multiplication':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '×';
+        answer = a * b;
+        break;
+      case 'division':
+        b = Math.floor(Math.random() * 9) + 1;
+        answer = Math.floor(Math.random() * 10) + 1;
+        a = answer * b;
+        op = '÷';
+        break;
+      case 'mixed':
+      default:
+        const types = ['addition', 'subtraction', 'multiplication', 'division'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        return generateMathProblem(randomType);
+    }
+    return { a: a, b: b, op: op, answer: answer };
+  }
+
+  function setupMathPractice() {
+    const type = mathPracticeTypeSel.value;
+    mathPracticeState.type = type;
+    mathPracticeState.current = generateMathProblem(type);
+    const p = mathPracticeState.current;
+    mathPracticeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
+    mathPracticeAnswerEl.textContent = 'Choose an answer below.';
+    mathPracticeCard.classList.remove('sparkle');
+    const choices = new Set();
+    choices.add(p.answer);
+    while (choices.size < 4) {
+      const delta = Math.floor(Math.random() * 10) - 5;
+      const c = p.answer + delta;
+      if (c > 0) choices.add(c);
+    }
+    const arr = Array.from(choices);
+    shuffleOrder(arr);
+    mathPracticeChoiceBtns.forEach(function (btn, idx) {
+      const val = arr[idx];
+      btn.textContent = val;
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = false;
+      btn.dataset.correct = (val === p.answer) ? '1' : '0';
+    });
+  }
+
+  mathPracticeChoiceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!mathPracticeState.current) return;
+      const correct = btn.dataset.correct === '1';
+      mathPracticeChoiceBtns.forEach(function (b) {
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      const p = mathPracticeState.current;
+      if (correct) {
+        mathPracticeState.score += 10;
+        mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
+        mathPracticeAnswerEl.textContent = 'Correct!';
+        mathPracticeCard.classList.add('sparkle');
+        simpleBeep(true);
+      } else {
+        mathPracticeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
+        mathPracticeCard.classList.remove('sparkle');
+        simpleBeep(false);
+      }
+      setTimeout(function () {
+        mathPracticeCard.classList.remove('sparkle');
+        setupMathPractice();
+      }, 450);
+    });
+  });
+  // Math practice swipe
+  let mathTouchStartX = null;
+  mathPracticeCard.addEventListener('touchstart', function (e) {
+    mathTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  mathPracticeCard.addEventListener('touchend', function (e) {
+    if (mathTouchStartX === null) return;
+    const dx = e.changedTouches[0].screenX - mathTouchStartX;
+    if (Math.abs(dx) > 50) setupMathPractice();
+    mathTouchStartX = null;
+  }, { passive: true });
+  mathPracticeTypeSel.onchange = setupMathPractice;
+
+  // Math challenge
+  const MATH_CHALLENGE_KEY = 'math_challenge_scores_v1';
+  let mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
+  try {
+    const rawMath = localStorage.getItem(MATH_CHALLENGE_KEY);
+    if (rawMath) mathChallengeScores = JSON.parse(rawMath);
+  } catch (e) {
+    mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
+  }
+  function saveMathChallengeScores() {
+    localStorage.setItem(MATH_CHALLENGE_KEY, JSON.stringify(mathChallengeScores));
+  }
+
+  const mathChallengeTypeSel = document.getElementById('mathChallengeType');
+  const mathChallengeStartBtn = document.getElementById('mathChallengeStartBtn');
+  const mathChallengeTimerEl = document.getElementById('mathChallengeTimer');
+  const mathChallengeScorePill = document.getElementById('mathChallengeScorePill');
+  const mathChallengeCard = document.getElementById('mathChallengeCard');
+  const mathChallengeProblemEl = document.getElementById('mathChallengeProblem');
+  const mathChallengeAnswerEl = document.getElementById('mathChallengeAnswer');
+  const mathChallengeChoiceBtns = Array.from(document.querySelectorAll('#mathChallengeChoices .math-choice-btn'));
+  const mathChallengeResults = document.getElementById('mathChallengeResults');
+  const mathChallengeResultsList = document.getElementById('mathChallengeResultsList');
+  const mathLeaderboardsPageEl = document.getElementById('mathLeaderboardsPage');
+  const homeMathTopEl = document.getElementById('homeMathTop');
+
+  let mathChallengeState = null;
+  let mathChallengeTimerId = null;
+
+  function startMathChallenge() {
+    const type = mathChallengeTypeSel.value;
+    mathChallengeState = {
+      type: type,
+      score: 0,
+      remaining: 60,
+      current: null,
+      answered: []
+    };
+    mathChallengeScorePill.textContent = 'Score: 0';
+    mathChallengeResults.style.display = 'none';
+    mathChallengeResultsList.innerHTML = '';
+    mathChallengeCard.classList.remove('sparkle');
+    if (mathChallengeTimerId) clearInterval(mathChallengeTimerId);
+    mathChallengeTimerEl.textContent = 'Time: 60';
+    mathChallengeTimerId = setInterval(function () {
+      if (!mathChallengeState) return;
+      mathChallengeState.remaining -= 1;
+      if (mathChallengeState.remaining <= 0) {
+        mathChallengeTimerEl.textContent = 'Time: 0';
+        endMathChallenge();
+      } else {
+        mathChallengeTimerEl.textContent = 'Time: ' + mathChallengeState.remaining;
+      }
+    }, 1000);
+    setupMathChallengeQuestion();
+  }
+
+  function setupMathChallengeQuestion() {
+    if (!mathChallengeState) return;
+    const type = mathChallengeState.type;
+    mathChallengeState.current = generateMathProblem(type);
+    const p = mathChallengeState.current;
+    mathChallengeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
+    mathChallengeAnswerEl.textContent = 'Choose an answer.';
+    mathChallengeCard.classList.remove('sparkle');
+    const choices = new Set();
+    choices.add(p.answer);
+    while (choices.size < 4) {
+      const delta = Math.floor(Math.random() * 10) - 5;
+      const c = p.answer + delta;
+      if (c > 0) choices.add(c);
+    }
+    const arr = Array.from(choices);
+    shuffleOrder(arr);
+    mathChallengeChoiceBtns.forEach(function (btn, idx) {
+      const val = arr[idx];
+      btn.textContent = val;
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = false;
+      btn.dataset.correct = (val === p.answer) ? '1' : '0';
+    });
+  }
+
+  mathChallengeChoiceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!mathChallengeState || !mathChallengeState.current) return;
+      const correct = btn.dataset.correct === '1';
+      mathChallengeChoiceBtns.forEach(function (b) {
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      const p = mathChallengeState.current;
+      if (correct) {
+        mathChallengeState.score += 10;
+        mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
+        mathChallengeAnswerEl.textContent = 'Correct!';
+        mathChallengeCard.classList.add('sparkle');
+        simpleBeep(true);
+      } else {
+        mathChallengeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
+        mathChallengeCard.classList.remove('sparkle');
+        simpleBeep(false);
+      }
+      mathChallengeState.answered.push({
+        problem: p.a + ' ' + p.op + ' ' + p.b,
+        correctAnswer: p.answer,
+        correct: correct
+      });
+      setTimeout(function () {
+        if (!mathChallengeState) return;
+        mathChallengeCard.classList.remove('sparkle');
+        setupMathChallengeQuestion();
+      }, 400);
+    });
+  });
+  mathChallengeStartBtn.onclick = startMathChallenge;
+
+  function endMathChallenge() {
+    if (mathChallengeTimerId) {
+      clearInterval(mathChallengeTimerId);
+      mathChallengeTimerId = null;
+    }
+    if (!mathChallengeState) return;
+
+    const type = mathChallengeState.type;
+    const score = mathChallengeState.score;
+    const answered = mathChallengeState.answered;
+
+    mathChallengeResults.style.display = 'block';
+    mathChallengeResultsList.innerHTML = '';
+
+    answered.forEach(function (entry) {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+
+      const mark = entry.correct ? '✅' : '❌';
+
+      row.innerHTML =
+        '<span>' + entry.problem + '</span>' +
+        '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
+
+      mathChallengeResultsList.appendChild(row);
+    });
+
+    const list = mathChallengeScores[type] || [];
+    const newEntry = { score: score, type: type, date: Date.now(), name: '' };
+    const combined = list.concat([newEntry])
+      .sort(function (a, b) { return b.score - a.score; })
+      .slice(0, 10);
+
+    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
+    if (isHighScore) {
+      const name = prompt('New high score! Enter a name:') || 'Player';
+      newEntry.name = name;
+    }
+    mathChallengeScores[type] = combined;
+    saveMathChallengeScores();
+    renderMathLeaderboards();
+    renderMathHomeTop();
+    mathChallengeState = null;
+  }
+
+  function renderMathLeaderboards() {
+    mathLeaderboardsPageEl.innerHTML = '';
+    const types = ['addition', 'subtraction', 'multiplication', 'division', 'mixed'];
+    const labels = {
+      addition: 'Addition',
+      subtraction: 'Subtraction',
+      multiplication: 'Multiplication',
+      division: 'Division',
+      mixed: 'Mixed'
+    };
+    types.forEach(function (type) {
+      const list = (mathChallengeScores[type] || []).slice()
+        .sort(function (a, b) { return b.score - a.score; })
+        .slice(0, 10);
+      const cardEl = document.createElement('div');
+      cardEl.className = 'settings-group';
+      cardEl.innerHTML = '<h3>' + labels[type] + '</h3>';
+      if (!list.length) {
+        const p = document.createElement('div');
+        p.className = 'hint';
+        p.textContent = 'No scores yet.';
+        cardEl.appendChild(p);
+      } else {
+        list.forEach(function (entry, idx) {
+          const row = document.createElement('div');
+          row.className = 'leaderboard-row';
+          row.innerHTML = '<span>' + (idx + 1) + '. ' + (entry.name || 'Player') +
+            '</span><span class="score">' + entry.score + '</span>';
+          cardEl.appendChild(row);
+        });
+      }
+      mathLeaderboardsPageEl.appendChild(cardEl);
+    });
+  }
+
+  function renderMathHomeTop() {
+    const types = ['addition', 'subtraction', 'multiplication', 'division', 'mixed'];
+    const labels = {
+      addition: 'Addition',
+      subtraction: 'Subtraction',
+      multiplication: 'Multiplication',
+      division: 'Division',
+      mixed: 'Mixed'
+    };
+    let html = '';
+    types.forEach(function (type) {
+      const list = (mathChallengeScores[type] || []).slice()
+        .sort(function (a, b) { return b.score - a.score; });
+      if (list.length) {
+        const best = list[0];
+        html += '<div class="leaderboard-row"><span>' + labels[type] +
+          '</span><span class="score">' + best.score + ' (' + (best.name || 'Player') + ')</span></div>';
+      }
+    });
+    if (!html) {
+      homeMathTopEl.innerHTML = '<div class="hint">Quick Math: no scores yet.</div>';
+    } else {
+      homeMathTopEl.innerHTML = html;
+    }
+  }
+
+  // Math subnav
+  const mathSubnavButtons = document.querySelectorAll('.subnav button[data-mathmode]');
+  function setMathMode(mode) {
+    mathSubnavButtons.forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.mathmode === mode);
+    });
+    document.querySelectorAll('.math-mode').forEach(function (sec) {
+      sec.style.display = 'none';
+    });
+    document.getElementById('math-' + mode).style.display = 'block';
+  }
+  mathSubnavButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () { setMathMode(btn.dataset.mathmode); });
+  });
+
+  // Init
+  renderFlashcard();
+  resetQuizState();
+  resetSpellingState();
+  resetSwChallengeState();
+  setupMathPractice();
+  renderSwHomeTop();
+  renderSwLeaderboardPage();
+  renderMathLeaderboards();
+  renderMathHomeTop();
+
+  // expose for home tiles
+  window.setSightMode = setSightMode;
+  window.switchView = switchView;
+</script>
+</body>
+</html>
