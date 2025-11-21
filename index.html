@@ -1815,33 +1815,45 @@
     });
   }
 
-  mathPracticeChoiceBtns.forEach(function (btn) {
+    mathPracticeChoiceBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!mathPracticeState.current) return;
-      const correct = btn.dataset.correct === '1';
-      mathPracticeChoiceBtns.forEach(function (b) {
-        if (b.dataset.correct === '1') b.classList.add('correct');
-        else b.classList.add('incorrect');
-        b.disabled = true;
-      });
-      const p = mathPracticeState.current;
-      if (correct) {
+
+      var isCorrect = btn.dataset.correct === '1';
+      var p = mathPracticeState.current;
+
+      if (isCorrect) {
+        // Mark all answers and lock them
+        mathPracticeChoiceBtns.forEach(function (b) {
+          if (b.dataset.correct === '1') b.classList.add('correct');
+          else b.classList.add('incorrect');
+          b.disabled = true;
+        });
+
         mathPracticeState.score += 10;
         mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
         mathPracticeAnswerEl.textContent = 'Correct!';
         mathPracticeCard.classList.add('sparkle');
         simpleBeep(true);
+
+        // Wait 3 seconds, then go to next problem
+        setTimeout(function () {
+          mathPracticeCard.classList.remove('sparkle');
+          setupMathPractice();
+        }, 3000);
       } else {
-        mathPracticeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
-        mathPracticeCard.classList.remove('sparkle');
+        // Wrong answer: DO NOT advance, let them choose again
+        // Mark only this button as incorrect and disable just this one
+        btn.classList.add('incorrect');
+        btn.disabled = true;
+
+        mathPracticeAnswerEl.textContent = 'Not quite. Try again!';
         simpleBeep(false);
+        // No timeout, no auto-advance
       }
-      setTimeout(function () {
-        mathPracticeCard.classList.remove('sparkle');
-        setupMathPractice();
-      }, 450);
     });
   });
+
   // Math practice swipe
   let mathTouchStartX = null;
   mathPracticeCard.addEventListener('touchstart', function (e) {
@@ -1941,13 +1953,17 @@
   mathChallengeChoiceBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!mathChallengeState || !mathChallengeState.current) return;
-      const correct = btn.dataset.correct === '1';
+
+      var correct = btn.dataset.correct === '1';
+      var p = mathChallengeState.current;
+      var selected = parseInt(btn.textContent, 10);
+
       mathChallengeChoiceBtns.forEach(function (b) {
         if (b.dataset.correct === '1') b.classList.add('correct');
         else b.classList.add('incorrect');
         b.disabled = true;
       });
-      const p = mathChallengeState.current;
+
       if (correct) {
         mathChallengeState.score += 10;
         mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
@@ -1959,11 +1975,15 @@
         mathChallengeCard.classList.remove('sparkle');
         simpleBeep(false);
       }
+
+      // Store what was selected AND the correct answer
       mathChallengeState.answered.push({
         problem: p.a + ' ' + p.op + ' ' + p.b,
+        userAnswer: selected,
         correctAnswer: p.answer,
         correct: correct
       });
+
       setTimeout(function () {
         if (!mathChallengeState) return;
         mathChallengeCard.classList.remove('sparkle');
@@ -1971,52 +1991,66 @@
       }, 400);
     });
   });
+
   mathChallengeStartBtn.onclick = startMathChallenge;
 
-  function endMathChallenge() {
+    function endMathChallenge() {
     if (mathChallengeTimerId) {
       clearInterval(mathChallengeTimerId);
       mathChallengeTimerId = null;
     }
     if (!mathChallengeState) return;
 
-    const type = mathChallengeState.type;
-    const score = mathChallengeState.score;
-    const answered = mathChallengeState.answered;
+    var type = mathChallengeState.type;
+    var score = mathChallengeState.score;
+    var answered = mathChallengeState.answered;
 
     mathChallengeResults.style.display = 'block';
     mathChallengeResultsList.innerHTML = '';
 
-    answered.forEach(function (entry) {
-      const row = document.createElement('div');
-      row.className = 'leaderboard-row';
+    if (!answered.length) {
+      var msg = document.createElement('div');
+      msg.className = 'hint';
+      msg.textContent = 'No problems answered this round.';
+      mathChallengeResultsList.appendChild(msg);
+    } else {
+      answered.forEach(function (entry) {
+        var row = document.createElement('div');
+        row.className = 'leaderboard-row';
 
-      const mark = entry.correct ? '✅' : '❌';
+        var userAns = (entry.userAnswer === undefined || entry.userAnswer === null)
+          ? '(blank)'
+          : entry.userAnswer;
 
-      row.innerHTML =
-        '<span>' + entry.problem + '</span>' +
-        '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
+        var mark = entry.correct ? '✅' : '❌';
 
-      mathChallengeResultsList.appendChild(row);
-    });
+        row.innerHTML =
+          '<span>' + entry.problem + '</span>' +
+          '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
 
-    const list = mathChallengeScores[type] || [];
-    const newEntry = { score: score, type: type, date: Date.now(), name: '' };
-    const combined = list.concat([newEntry])
+        mathChallengeResultsList.appendChild(row);
+      });
+    }
+
+    var list = mathChallengeScores[type] || [];
+    var newEntry = { score: score, type: type, date: Date.now(), name: '' };
+    var combined = list.concat([newEntry])
       .sort(function (a, b) { return b.score - a.score; })
       .slice(0, 10);
 
-    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
+    var isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
     if (isHighScore) {
-      const name = prompt('New high score! Enter a name:') || 'Player';
+      var name = prompt('New high score! Enter a name:') || 'Player';
       newEntry.name = name;
     }
+
     mathChallengeScores[type] = combined;
     saveMathChallengeScores();
     renderMathLeaderboards();
     renderMathHomeTop();
     mathChallengeState = null;
   }
+
 
   function renderMathLeaderboards() {
     mathLeaderboardsPageEl.innerHTML = '';
