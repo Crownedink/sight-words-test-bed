@@ -267,6 +267,25 @@
     }
 
     .card {
+      user-select: none;
+      width: 100%;
+      height: 55vh;
+      min-height: 260px;
+      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.1), transparent),
+              linear-gradient(180deg, var(--bg-alt), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      padding: 1rem;
+      text-align: center;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+}
           /* Timer + score inside Challenge 60 card */
     .card-metrics {
       position: absolute;
@@ -961,91 +980,90 @@ const DEFAULT_SETS = (function () {
   function makePairs(words) {
     // Keep your app consistent: [word, sentence]
     // Sentence is simple + predictable (you can customize later).
-    return words.map(function (w => [w, "I can read the word '" + w + "'."]);
+    return words.map(function (w) {
+      return [w, "I can read the word '" + w + "'."];
+    });
   }
 
   const extended = {};
 
   // 1) Alphabet folder (shows uppercase + lowercase)
-  extended["Alphabet (A–Z)"] = (function () {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    return letters.map(function (L) {
-      const lower = L.toLowerCase();
-      return [L + " " + lower, "Uppercase " + L + ", lowercase " + lower + "."];
+ extended["Alphabet (A–Z)"] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(function (L) {
+    const lower = L.toLowerCase();
+    return [L + " " + lower, "Uppercase " + L + ", lowercase " + lower + "."];
     });
-  })();
-
-  // Fry Grade 1 (1–30) :contentReference[oaicite:1]{index=1}
+  
+  // Fry Grade 1 (1–30)
   extended["Fry Grade 1 (Top 30)"] = makePairs([
     "the","of","and","a","to","in","is","you","that","it",
     "he","was","for","on","are","as","with","his","they","I",
     "at","be","this","have","from","or","one","had","by","word"
   ]);
 
-  // Fry Grade 2 (31–60) :contentReference[oaicite:2]{index=2}
+  // Fry Grade 2 (31–60) 
   extended["Fry Grade 2 (Top 30)"] = makePairs([
     "but","not","what","all","were","we","when","your","can","said",
     "there","use","an","each","which","she","do","how","their","if",
     "will","up","other","about","out","many","then","them","these","so"
   ]);
 
-  // Fry Grade 3 (61–90) :contentReference[oaicite:3]{index=3}
+  // Fry Grade 3 (61–90)
   extended["Fry Grade 3 (Top 30)"] = makePairs([
     "some","her","would","make","like","him","into","time","has","look",
     "two","more","write","go","see","number","no","way","could","people",
     "my","than","first","water","been","call","who","oil","its","now"
   ]);
 
-  // Fry Grade 4 (91–120) :contentReference[oaicite:4]{index=4}
+  // Fry Grade 4 (91–120) 
   extended["Fry Grade 4 (Top 30)"] = makePairs([
     "find","long","down","day","did","get","come","made","may","part",
     "over","new","sound","take","only","little","work","know","place","year",
     "live","me","back","give","most","very","after","thing","our","just"
   ]);
 
-  // Fry Grade 5 (121–150) :contentReference[oaicite:5]{index=5}
+  // Fry Grade 5 (121–150) 
   extended["Fry Grade 5 (Top 30)"] = makePairs([
     "name","good","sentence","man","think","say","great","where","help","through",
     "much","before","line","right","too","mean","old","any","same","tell",
     "boy","follow","came","want","show","also","around","form","three","small"
   ]);
 
-  // Fry Grade 6 (151–180) :contentReference[oaicite:6]{index=6}
+  // Fry Grade 6 (151–180)
   extended["Fry Grade 6 (Top 30)"] = makePairs([
     "set","put","end","does","another","well","large","must","big","even",
     "such","because","turn","here","why","ask","went","men","read","need",
     "land","different","home","us","move","try","kind","hand","picture","again"
   ]);
 
-  // Fry Grade 7 (181–210) :contentReference[oaicite:7]{index=7}
+  // Fry Grade 7 (181–210) 
   extended["Fry Grade 7 (Top 30)"] = makePairs([
     "change","off","play","spell","air","away","animal","house","point","page",
     "letter","mother","answer","found","study","still","learn","should","America","world",
     "high","every","near","add","food","between","own","below","country","plant"
   ]);
 
-  // Fry Grade 8 (211–240) :contentReference[oaicite:8]{index=8}
+  // Fry Grade 8 (211–240)
   extended["Fry Grade 8 (Top 30)"] = makePairs([
     "last","school","father","keep","tree","never","start","city","earth","eye",
     "light","thought","head","under","story","saw","left","don't","few","while",
     "along","might","close","something","seem","next","hard","open","example","begin"
   ]);
 
-  // Fry Grade 9 (241–270) :contentReference[oaicite:9]{index=9}
+  // Fry Grade 9 (241–270) 
   extended["Fry Grade 9 (Top 30)"] = makePairs([
     "life","always","those","both","paper","together","got","group","often","run",
     "important","until","children","side","feet","car","mile","night","walk","white",
     "sea","began","grow","took","river","four","carry","state","once","book"
   ]);
 
-  // Fry Grade 10 (271–300) :contentReference[oaicite:10]{index=10}
+  // Fry Grade 10 (271–300) 
   extended["Fry Grade 10 (Top 30)"] = makePairs([
     "hear","stop","without","second","later","miss","idea","enough","eat","face",
     "watch","far","Indian","real","almost","let","above","girl","sometimes","mountains",
     "cut","young","talk","soon","list","song","being","leave","family","it's"
   ]);
 
-  // Fry Advanced (901–930) :contentReference[oaicite:11]{index=11}
+  // Fry Advanced (901–930)
   extended["Fry Advanced (901–930)"] = makePairs([
     "meat","lifted","process","army","hat","property","particular","swim","terms","current",
     "park","sell","shoulder","industry","wash","block","spread","cattle","wife","sharp",
