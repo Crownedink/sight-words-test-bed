@@ -973,13 +973,9 @@
         return [w, sentences[w] || ("I can read the word '" + w + "'.")];
       });
     })(),
-    // --- Sight words data ---
-// 12 default folders: Alphabet + Fry Grade 1-10 (top 30 each) + Fry Advanced (901-930)
+ // 12+ folders total: keep your originals AND add Fry folders
 const DEFAULT_SETS = (function () {
-
   function makePairs(words) {
-    // Keep your app consistent: [word, sentence]
-    // Sentence is simple + predictable (you can customize later).
     return words.map(function (w) {
       return [w, "I can read the word '" + w + "'."];
     });
