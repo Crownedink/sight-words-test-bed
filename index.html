@@ -552,6 +552,18 @@
         </div>
       </div>
 
+      <div class="tile" onclick="switchView('math'); setMathMode('challenge');">
+      <div>
+        <div class="tile-title"><span>⏱️</span> Math Sprint 60</div>
+        <div class="tile-subtitle">60 seconds of fast math drills with scoring.</div>
+      </div>
+      <div class="row">
+        <span class="pill">Time + Score</span>
+        <span class="pill">Top 10 scores</span>
+      </div>
+    </div>
+
+
       <div class="settings-group">
         <h3>🏆 Best Scores (Quick Glance)</h3>
         <div id="homeSwTop" class="leaderboard"></div>
@@ -2254,6 +2266,8 @@ const DEFAULT_SETS = (function () {
   // expose for home tiles
   window.setSightMode = setSightMode;
   window.switchView = switchView;
+  window.setMathMode = setMathMode;
+
 </script>
 </body>
 </html>
