@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'sight-words-ghp-v1.23';
+const CACHE_NAME = 'sight-words-ghp-v1.24';
 const ASSETS = [
   './',
   './index.html',
