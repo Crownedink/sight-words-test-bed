@@ -286,7 +286,7 @@
       overflow: hidden;
       margin-bottom: 0.6rem;
 }
-          /* Timer + score inside Challenge 60 card */
+        /* Timer + score pills inside cards (Sight Challenge + Math Sprint) */
     .card-metrics {
       position: absolute;
       top: 0.6rem;
@@ -772,16 +772,16 @@
             <option value="mixed">Mixed</option>
           </select>
         </div>
-        <div class="row">
-          <button id="mathChallengeStartBtn" class="btn-primary">Start Sprint</button>
-          <span class="pill" id="mathChallengeTimer">Time: 60</span>
-          <span class="pill" id="mathChallengeScorePill">Score: 0</span>
-        </div>
+      <div class="card" id="mathChallengeCard">
+  <!-- Time & score inside the card (matches Sight Words Challenge 60) -->
+      <div class="card-metrics">
+        <span class="pill pill-large" id="mathChallengeTimer">Time: 60</span>
+        <span class="pill pill-large" id="mathChallengeScorePill">Score: 0</span>
+      </div>
 
-        <div class="card" id="mathChallengeCard">
-          <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
-          <div class="math-answer" id="mathChallengeAnswer"></div>
-        </div>
+        <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
+        <div class="math-answer" id="mathChallengeAnswer"></div>
+      </div>
 
         <div class="math-choices" id="mathChallengeChoices">
           <button class="math-choice-btn"></button>
