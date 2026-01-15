@@ -106,6 +106,196 @@
     section.view.active {
       display: block;
     }
+// ------------------------------
+// Profiles + Rewards (v1)
+// ------------------------------
+const PROFILES_KEY = "sw_profiles_v1";
+const ACTIVE_PROFILE_KEY = "sw_active_profile_id_v1";
+const MAX_PROFILES = 3;
+
+function todayKey() {
+  const d = new Date();
+  // local day key (good enough for offline)
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function genId() {
+  return "p_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
+function loadProfiles() {
+  try {
+    const raw = localStorage.getItem(PROFILES_KEY);
+    const arr = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(arr) && arr.length) return arr;
+  } catch (e) {}
+  return [];
+}
+
+function saveProfiles(list) {
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(list));
+}
+
+function getActiveProfileId() {
+  return localStorage.getItem(ACTIVE_PROFILE_KEY);
+}
+
+function setActiveProfileId(id) {
+  localStorage.setItem(ACTIVE_PROFILE_KEY, id);
+}
+
+function defaultProfile(name) {
+  return {
+    id: genId(),
+    name: name || "Player",
+    createdAt: Date.now(),
+    stats: { xp: 0, level: 1, coins: 0, lastPlayedDay: "" },
+    achievements: {},
+    mastery: {},
+    leaderboards: {
+      sightChallenge: [],
+      mathChallenge: {
+        addition: [], subtraction: [], multiplication: [], division: [], mixed: []
+      }
+    }
+  };
+}
+
+let PROFILES = loadProfiles();
+if (!PROFILES.length) {
+  // Create the first profile automatically
+  const p = defaultProfile("Player 1");
+  PROFILES = [p];
+  saveProfiles(PROFILES);
+  setActiveProfileId(p.id);
+}
+
+// Ensure active id is valid
+let ACTIVE_PROFILE_ID = getActiveProfileId();
+if (!ACTIVE_PROFILE_ID || !PROFILES.some(p => p.id === ACTIVE_PROFILE_ID)) {
+  ACTIVE_PROFILE_ID = PROFILES[0].id;
+  setActiveProfileId(ACTIVE_PROFILE_ID);
+}
+
+function getActiveProfile() {
+  return PROFILES.find(p => p.id === ACTIVE_PROFILE_ID) || PROFILES[0];
+}
+
+function updateActiveProfile(mutatorFn) {
+  const idx = PROFILES.findIndex(p => p.id === ACTIVE_PROFILE_ID);
+  if (idx === -1) return;
+  mutatorFn(PROFILES[idx]);
+  saveProfiles(PROFILES);
+}
+
+// ----- Leveling -----
+function xpToLevel(xp) {
+  // simple curve: level grows gradually
+  // Level 1 at 0xp; each level requires +100, +120, +140, ...
+  let level = 1;
+  let need = 100;
+  let remaining = xp;
+
+  while (remaining >= need) {
+    remaining -= need;
+    level += 1;
+    need += 20;
+    if (level > 100) break; // safety
+  }
+  return level;
+}
+
+function awardXpCoins(xpGain, coinGain) {
+  updateActiveProfile(p => {
+    p.stats.xp += (xpGain || 0);
+    p.stats.coins += (coinGain || 0);
+    const newLevel = xpToLevel(p.stats.xp);
+    if (newLevel > p.stats.level) {
+      p.stats.level = newLevel;
+      // Optional: level-up bonus coins
+      p.stats.coins += 10;
+      unlockAchievement("level_up");
+    }
+    p.stats.lastPlayedDay = todayKey();
+  });
+}
+
+// ----- Achievements -----
+function hasAchievement(id) {
+  const p = getActiveProfile();
+  return !!(p.achievements && p.achievements[id] && p.achievements[id].unlocked);
+}
+
+function unlockAchievement(id) {
+  if (hasAchievement(id)) return false;
+
+  updateActiveProfile(p => {
+    if (!p.achievements) p.achievements = {};
+    p.achievements[id] = { unlocked: true, date: Date.now() };
+  });
+
+  // Optional: reward coins for achievements
+  awardXpCoins(0, 25);
+  return true;
+}
+
+// Example achievement checks you can call
+function onFirstCorrectSpelling() {
+  unlockAchievement("first_correct_spelling");
+}
+function onFirstChallengePlayed() {
+  unlockAchievement("first_challenge_played");
+}
+function onScore200SightChallenge(score) {
+  if (score >= 200) unlockAchievement("sight_200");
+}
+function onMathStreak10() {
+  unlockAchievement("math_streak_10");
+}
+
+// ----- Folder mastery (3 correct in a row per word) -----
+function markWordResult(folderName, word, correct) {
+  const targetFolder = folderName || "Unknown";
+  const w = (word || "").toLowerCase();
+
+  updateActiveProfile(p => {
+    if (!p.mastery) p.mastery = {};
+    if (!p.mastery[targetFolder]) p.mastery[targetFolder] = {};
+    if (!p.mastery[targetFolder][w]) p.mastery[targetFolder][w] = { streak: 0, mastered: false };
+
+    const entry = p.mastery[targetFolder][w];
+
+    if (entry.mastered) return;
+
+    if (correct) entry.streak += 1;
+    else entry.streak = 0;
+
+    if (entry.streak >= 3) {
+      entry.mastered = true;
+      unlockAchievement("first_mastery");
+      // bonus for mastering a word
+      p.stats.coins += 5;
+      p.stats.xp += 10;
+      p.stats.level = xpToLevel(p.stats.xp);
+    }
+  });
+}
+
+function folderMasterySummary(folderName, wordsArray) {
+  const p = getActiveProfile();
+  const folder = p.mastery && p.mastery[folderName] ? p.mastery[folderName] : {};
+  let mastered = 0;
+
+  (wordsArray || []).forEach(pair => {
+    const w = String(pair[0] || "").toLowerCase();
+    if (folder[w] && folder[w].mastered) mastered += 1;
+  });
+
+  return { mastered, total: (wordsArray || []).length };
+}
 
     /* Side menu */
     .menu-overlay {
