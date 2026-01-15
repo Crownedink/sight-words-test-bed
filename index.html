@@ -772,6 +772,11 @@
             <option value="mixed">Mixed</option>
           </select>
         </div>
+
+        <div class="row">
+          <button id="mathChallengeStartBtn" class="btn-primary">Start Sprint</button>
+        </div>
+
       <div class="card" id="mathChallengeCard">
   <!-- Time & score inside the card (matches Sight Words Challenge 60) -->
       <div class="card-metrics">
@@ -1753,7 +1758,10 @@ const DEFAULT_SETS = (function () {
     if (autoPlay) speak(w);
   }
 
-  swChallengeStartBtn.onclick = startSwChallenge;
+  const swChallengeStartBtn = document.getElementById('swChallengeStartBtn');
+  If (swChallengeStartBtn) {
+    swChallengeStartBtn.onclick = startSwChallenge;
+  }
   swChallengePlayWordBtn.onclick = function () {
     if (!swChallengeState || swChallengeState.currentIdx == null) return;
     const w = data[swChallengeState.currentIdx][0];
@@ -2116,7 +2124,10 @@ const DEFAULT_SETS = (function () {
     });
   });
 
-  mathChallengeStartBtn.onclick = startMathChallenge;
+  const mathChallengeStartBtn = document.getElementById('mathChallengeStartBtn');
+  if (mathChallengeStartBtn) {
+    mathChallengeStartBtn.onclick = startMathChallenge;
+  }
 
     function endMathChallenge() {
     if (mathChallengeTimerId) {
