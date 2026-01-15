@@ -1758,10 +1758,7 @@ const DEFAULT_SETS = (function () {
     if (autoPlay) speak(w);
   }
 
-  const swChallengeStartBtn = document.getElementById('swChallengeStartBtn');
-  If (swChallengeStartBtn) {
-    swChallengeStartBtn.onclick = startSwChallenge;
-  }
+  swChallengeStartBtn.onclick = startSwChallenge;
   swChallengePlayWordBtn.onclick = function () {
     if (!swChallengeState || swChallengeState.currentIdx == null) return;
     const w = data[swChallengeState.currentIdx][0];
@@ -2124,10 +2121,7 @@ const DEFAULT_SETS = (function () {
     });
   });
 
-  const mathChallengeStartBtn = document.getElementById('mathChallengeStartBtn');
-  if (mathChallengeStartBtn) {
     mathChallengeStartBtn.onclick = startMathChallenge;
-  }
 
     function endMathChallenge() {
     if (mathChallengeTimerId) {
