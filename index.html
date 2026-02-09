@@ -94,6 +94,25 @@
       font-size: 1.1rem;
     }
 
+    #starsPill{
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(34,197,94,0.12);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25);
+    }
+
+    /* Star reward pop animation */
+    .star-pop {
+      animation: starPop 0.35s ease-out;
+    }
+
+    @keyframes starPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+
+
     main {
       flex: 1;
       padding: 1rem;
@@ -499,6 +518,11 @@
     <div class="app-title"><span class="icon">📚</span> Spelling SightWords</div>
   </header>
 
+  <div class="app-title"><span class="icon">📚</span> Spelling SightWords</div>
+
+  <span id="starsPill" class="pill" style="margin-left:auto; font-weight:800;">
+    ⭐ Stars: 0
+  </span>
   <div id="menuOverlay" class="menu-overlay"></div>
   <div id="sideMenu" class="side-menu">
     <h2>Menu</h2>
@@ -950,7 +974,7 @@ function defaultProfile(name) {
     id: genId(),
     name: name || "Player",
     createdAt: Date.now(),
-    stats: { xp: 0, level: 1, coins: 0, lastPlayedDay: "" },
+    stats: { xp: 0, level: 1, coins: 0, stars: 0, lastPlayedDay: "" },
     achievements: {},
     mastery: {},
     leaderboards: {
@@ -1006,19 +1030,23 @@ function xpToLevel(xp) {
   return level;
 }
 
-function awardXpCoins(xpGain, coinGain) {
+function awardXpCoins(xpGain, coinGain, starGain) {
   updateActiveProfile(p => {
     p.stats.xp += (xpGain || 0);
     p.stats.coins += (coinGain || 0);
+    p.stas.stars += (starGain || 0);
     const newLevel = xpToLevel(p.stats.xp);
     if (newLevel > p.stats.level) {
       p.stats.level = newLevel;
       // Optional: level-up bonus coins
       p.stats.coins += 10;
+      p.stats.stars += 1; // star bonus for leveling up
       unlockAchievement("level_up");
     }
     p.stats.lastPlayedDay = todayKey();
   });
+
+  renderStars(); //keeps header updated instantly
 }
 
 // ----- Achievements -----
@@ -1036,7 +1064,8 @@ function unlockAchievement(id) {
   });
 
   // Optional: reward coins for achievements
-  awardXpCoins(0, 25);
+  awardXpCoins(0, 25, 5);
+  renderStars();
   return true;
 }
 
@@ -1082,6 +1111,23 @@ function markWordResult(folderName, word, correct) {
   });
 }
 
+  
+ const starsPill = document.getElementById("starsPill");
+
+ function renderStars() {
+  if (!starsPill) return;
+
+  const p = getActiveProfile();
+  const stars =
+    (p.stats && typeof p.stats.stars === "number") ? p.stats.stars : 0;
+
+  starsPill.textContent = `⭐ Stars: ${stars}`;
+
+  // ⭐ trigger pop animation
+  starsPill.classList.remove("star-pop");
+  void starsPill.offsetWidth; // force reflow so animation restarts
+  starsPill.classList.add("star-pop");
+}
 // ------------------------------
 // Profile-scoped Sight Challenge Leaderboards
 // ------------------------------
@@ -1760,7 +1806,7 @@ const DEFAULT_SETS = (function () {
       if (isCorrect) {
         quizState.score += 10;
         quizScorePill.textContent = 'Score: ' + quizState.score;
-        awardXpCoins(5, 2);
+        awardXpCoins(5, 2, 1);
         markWordResult(activeFolder, /*word*/ btn.textContent, true); // better: use the actual prompt word
         unlockAchievement("first_quiz_correct");
       }
@@ -1844,7 +1890,7 @@ const DEFAULT_SETS = (function () {
     if (answer === target) {
       spellingState.correctCount += 1;
       spellStatusEl.textContent = 'Correct! ✅';
-      awardXpCoins(7, 3);
+      awardXpCoins(7, 3, 1);
       markWordResult(activeFolder, w, true);
       onFirstCorrectSpelling();
     } else {
@@ -2008,7 +2054,7 @@ const DEFAULT_SETS = (function () {
       swChallengeState.score += 10;
       swChallengeScorePill.textContent = 'Score: ' + swChallengeState.score;
       swChallengeCard.classList.add('sparkle');
-      awardXpCoins(10, 4);
+      awardXpCoins(10, 4, 1);
       markWordResult(activeFolder, w, true);
       onFirstChallengePlayed();
     }
@@ -2196,7 +2242,7 @@ const DEFAULT_SETS = (function () {
           });
 
 // reward only once (NOT inside the forEach)
-        awardXpCoins(5, 2);
+        awardXpCoins(5, 2, 1);
         unlockAchievement("first_math_correct");
 
         mathPracticeState.score += 10;
@@ -2521,6 +2567,7 @@ function renderProfileSelect() {
 
 function refreshAllProfileBasedUI() {
   // Re-render leaderboards + home top scores with active profile data
+  renderStars()
   renderSwHomeTop();
   renderSwLeaderboardPage();
   renderMathLeaderboards();
@@ -2594,6 +2641,7 @@ if (profileDeleteBtn) {
 
 
   // Init
+  renderstars();
   renderFlashcard();
   resetQuizState();
   resetSpellingState();
