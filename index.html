@@ -1881,8 +1881,7 @@ const DEFAULT_SETS = (function () {
   // Sight challenge 60 (spelling only)
   const SW_CHALLENGE_KEY = 'sw_challenge_scores_v2';
   let swChallengeScores = getSwChallengeScores();
-swChallengeScores.push(newEntry);
-setSwChallengeScores(swChallengeScores);
+
 
   const homeSwTopEl = document.getElementById('homeSwTop');
   const swLeaderboardPageEl = document.getElementById('swLeaderboardPage');
@@ -2084,7 +2083,7 @@ setSwChallengeScores(swChallengeScores);
       newEntry.name = name;
     }
     swChallengeScores = combined;
-    saveSwChallengeScores();
+    setSwChallengeScores(swChallengeScores);
     renderSwHomeTop();
     renderSwLeaderboardPage();
     swChallengeState = null;
@@ -2190,13 +2189,15 @@ setSwChallengeScores(swChallengeScores);
 
       if (isCorrect) {
         // Mark all answers and lock them
-        mathPracticeChoiceBtns.forEach(function (b) {
-          if (b.dataset.correct === '1') b.classList.add('correct');
-          awardXpCoins(5, 2);
-          unlockAchievement("first_math_correct");  
-          else b.classList.add('incorrect');
-          b.disabled = true;
-        });
+         mathPracticeChoiceBtns.forEach(function (b) {
+           if (b.dataset.correct === '1') b.classList.add('correct');
+           else b.classList.add('incorrect');
+           b.disabled = true;
+          });
+
+// reward only once (NOT inside the forEach)
+        awardXpCoins(5, 2);
+        unlockAchievement("first_math_correct");
 
         mathPracticeState.score += 10;
         mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
@@ -2590,100 +2591,7 @@ if (profileDeleteBtn) {
     refreshAllProfileBasedUI();
   };
 }
-// ------------------------------
-// Profile UI wiring
-// ------------------------------
-const profileSelect = document.getElementById("profileSelect");
-const profileNewBtn = document.getElementById("profileNewBtn");
-const profileRenameBtn = document.getElementById("profileRenameBtn");
-const profileDeleteBtn = document.getElementById("profileDeleteBtn");
 
-function renderProfileSelect() {
-  if (!profileSelect) return;
-  profileSelect.innerHTML = "";
-
-  PROFILES.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = p.name;
-    profileSelect.appendChild(opt);
-  });
-
-  profileSelect.value = ACTIVE_PROFILE_ID;
-}
-
-function refreshAllProfileBasedUI() {
-  // Re-render leaderboards + home top scores with active profile data
-  renderSwHomeTop();
-  renderSwLeaderboardPage();
-  renderMathLeaderboards();
-  renderMathHomeTop();
-
-  // You can optionally update a "Level / Coins" display if you add it later.
-}
-
-if (profileSelect) {
-  renderProfileSelect();
-
-  profileSelect.addEventListener("change", function () {
-    ACTIVE_PROFILE_ID = profileSelect.value;
-    setActiveProfileId(ACTIVE_PROFILE_ID);
-    refreshAllProfileBasedUI();
-  });
-}
-
-if (profileNewBtn) {
-  profileNewBtn.onclick = function () {
-    if (PROFILES.length >= MAX_PROFILES) {
-      alert("Max profiles reached (3). Delete one to create a new profile.");
-      return;
-    }
-    const name = prompt("New profile name:", "Player " + (PROFILES.length + 1));
-    if (!name) return;
-
-    const p = defaultProfile(name.trim());
-    PROFILES.push(p);
-    saveProfiles(PROFILES);
-    ACTIVE_PROFILE_ID = p.id;
-    setActiveProfileId(ACTIVE_PROFILE_ID);
-
-    renderProfileSelect();
-    refreshAllProfileBasedUI();
-  };
-}
-
-if (profileRenameBtn) {
-  profileRenameBtn.onclick = function () {
-    const p = getActiveProfile();
-    const name = prompt("Rename profile:", p.name);
-    if (!name) return;
-
-    updateActiveProfile(pr => { pr.name = name.trim(); });
-    PROFILES = loadProfiles();
-    renderProfileSelect();
-    refreshAllProfileBasedUI();
-  };
-}
-
-if (profileDeleteBtn) {
-  profileDeleteBtn.onclick = function () {
-    if (PROFILES.length <= 1) {
-      alert("You must have at least one profile.");
-      return;
-    }
-    const p = getActiveProfile();
-    if (!confirm('Delete profile "' + p.name + '"? This cannot be undone.')) return;
-
-    PROFILES = PROFILES.filter(x => x.id !== p.id);
-    saveProfiles(PROFILES);
-
-    ACTIVE_PROFILE_ID = PROFILES[0].id;
-    setActiveProfileId(ACTIVE_PROFILE_ID);
-
-    renderProfileSelect();
-    refreshAllProfileBasedUI();
-  };
-}
 
   // Init
   renderFlashcard();
