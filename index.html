@@ -1023,7 +1023,7 @@ function defaultProfile(name) {
   };
 }
 
-let PROFILES = loadProfiles();
+PROFILES = loadProfiles();
 if (!PROFILES.length) {
   // Create the first profile automatically
   const p = defaultProfile("Player 1");
