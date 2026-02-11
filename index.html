@@ -542,6 +542,11 @@
       <h1>Learning Hub 🎒</h1>
       <p class="hint">Tap a tile to start practicing sight words or math. High scores will show up here too!</p>
 
+    <div id="homeHud" class="settings-group" style="margin-top:0.75rem;">
+      <div id="homeHudLine1" class="flex-between"></div>
+      <div id="homeHudLine2" class="flex-between" style="margin-top:0.35rem;"></div>
+    </div>
+
       <div class="tile-grid">
         <div class="tile" onclick="switchView('sight')">
           <div>
@@ -861,10 +866,11 @@
       <button id="profileNewBtn" class="btn-small">New</button>
       <button id="profileRenameBtn" class="btn-small">Rename</button>
       <button id="profileDeleteBtn" class="btn-small btn-danger">Delete</button>
+      <div id="profileStatsBox" class="stack" style="margin-top:0.5rem;"></div>
   </div>
   <div class="hint">Up to 3 profiles on this device. Rewards, mastery, and scores are profile-based.</div>
 </div>
-
+      
       <div class="settings-group">
         <h3>App Info</h3>
         <p class="hint">Practice sight words and basic math. Install on your device for offline use.</p>
@@ -948,6 +954,35 @@ function genId() {
   return "p_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
 }
 
+function ensureProfileShape(p) {
+  if (!p) return p;
+
+  if (!p.stats) p.stats = {};
+  if (typeof p.stats.xp !== "number") p.stats.xp = 0;
+  if (typeof p.stats.level !== "number") p.stats.level = 1;
+  if (typeof p.stats.coins !== "number") p.stats.coins = 0;
+  if (typeof p.stats.stars !== "number") p.stats.stars = 0;
+
+  if (typeof p.stats.totalPlayMs !== "number") p.stats.totalPlayMs = 0;
+  if (typeof p.stats.lastPlayedDay !== "string") p.stats.lastPlayedDay = "";
+
+  if (!p.achievements) p.achievements = {};
+  if (!p.mastery) p.mastery = {};
+
+  if (!p.leaderboards) {
+    p.leaderboards = {
+      sightChallenge: [],
+      mathChallenge: { addition:[], subtraction:[], multiplication:[], division:[], mixed:[] }
+    };
+  } else {
+    if (!Array.isArray(p.leaderboards.sightChallenge)) p.leaderboards.sightChallenge = [];
+    if (!p.leaderboards.mathChallenge) {
+      p.leaderboards.mathChallenge = { addition:[], subtraction:[], multiplication:[], division:[], mixed:[] };
+    }
+  }
+  return p;
+}
+  
 function loadProfiles() {
   try {
     const raw = localStorage.getItem(PROFILES_KEY);
@@ -956,6 +991,8 @@ function loadProfiles() {
   } catch (e) {}
   return [];
 }
+  let PROFILES = loadProfiles().map(ensureProfileShape);
+saveProfiles(PROFILES); // write back migrated shape once
 
 function saveProfiles(list) {
   localStorage.setItem(PROFILES_KEY, JSON.stringify(list));
@@ -1008,7 +1045,17 @@ function getActiveProfile() {
 
 function updateActiveProfile(mutatorFn) {
   const idx = PROFILES.findIndex(p => p.id === ACTIVE_PROFILE_ID);
+  if (idx === -1) return; 
+function updateActiveProfile(mutatorFn) {
+  const idx = PROFILES.findIndex(p => p.id === ACTIVE_PROFILE_ID);
   if (idx === -1) return;
+
+  PROFILES[idx] = ensureProfileShape(PROFILES[idx]); // ✅ important
+  mutatorFn(PROFILES[idx]);
+
+  PROFILES[idx] = ensureProfileShape(PROFILES[idx]); // optional safety
+  saveProfiles(PROFILES);
+}
   mutatorFn(PROFILES[idx]);
   saveProfiles(PROFILES);
 }
@@ -1032,6 +1079,7 @@ function xpToLevel(xp) {
 
 function awardXpCoins(xpGain, coinGain, starGain) {
   updateActiveProfile(p => {
+    ensureProfileShape(p);
     p.stats.xp += (xpGain || 0);
     p.stats.coins += (coinGain || 0);
     p.stas.stars += (starGain || 0);
@@ -2384,6 +2432,8 @@ const DEFAULT_SETS = (function () {
         mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
         mathChallengeAnswerEl.textContent = 'Correct!';
         mathChallengeCard.classList.add('sparkle');
+        awardXpCoins(10, 4, 1); // xp, coins, stars (we’ll update function)
+        unlockAchievement("first_math_sprint_correct");
         simpleBeep(true);
       } else {
         mathChallengeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
@@ -2639,6 +2689,58 @@ if (profileDeleteBtn) {
   };
 }
 
+function levelProgress(xp) {
+  let level = 1;
+  let need = 100;
+  let remaining = xp;
+  while (remaining >= need) {
+    remaining -= need;
+    level += 1;
+    need += 20;
+    if (level > 100) break;
+  }
+  return { level, into: remaining, need };
+}
+
+let sessionStart = Date.now();
+
+function formatMs(ms) {
+  const s = Math.floor(ms/1000);
+  const h = Math.floor(s/3600);
+  const m = Math.floor((s%3600)/60);
+  const ss = s%60;
+  return `${h}h ${m}m ${ss}s`;
+}
+
+function renderHudAndProfileStats() {
+  const p = ensureProfileShape(getActiveProfile());
+  const prog = levelProgress(p.stats.xp);
+  const xpToNext = Math.max(0, prog.need - prog.into);
+
+  // Home HUD
+  const hud1 = document.getElementById("homeHudLine1");
+  const hud2 = document.getElementById("homeHudLine2");
+  if (hud1 && hud2) {
+    hud1.innerHTML = `<div><strong>👤 ${p.name}</strong></div><div>Lvl <strong>${p.stats.level}</strong></div>`;
+    hud2.innerHTML =
+      `<div>XP to next: <strong>${xpToNext}</strong></div>` +
+      `<div>🪙 <strong>${p.stats.coins}</strong> &nbsp; ⭐ <strong>${p.stats.stars}</strong></div>`;
+  }
+
+  // Settings profile stats
+  const box = document.getElementById("profileStatsBox");
+  if (box) {
+    const sessionMs = Date.now() - sessionStart;
+    box.innerHTML = `
+      <div class="leaderboard-row"><span>Level</span><span class="score">${p.stats.level}</span></div>
+      <div class="leaderboard-row"><span>XP to next</span><span class="score">${xpToNext}</span></div>
+      <div class="leaderboard-row"><span>Total Coins</span><span class="score">${p.stats.coins}</span></div>
+      <div class="leaderboard-row"><span>Total Stars</span><span class="score">${p.stats.stars}</span></div>
+      <div class="leaderboard-row"><span>Total Play Time</span><span class="score">${formatMs(p.stats.totalPlayMs || 0)}</span></div>
+      <div class="leaderboard-row"><span>Session Time</span><span class="score">${formatMs(sessionMs)}</span></div>
+    `;
+  }
+}
 
   // Init
   renderStars();
@@ -2647,10 +2749,20 @@ if (profileDeleteBtn) {
   resetSpellingState();
   resetSwChallengeState();
   setupMathPractice();
+  setInterval(renderHudAndProfileStats, 1000);
   renderSwHomeTop();
   renderSwLeaderboardPage();
   renderMathLeaderboards();
   renderMathHomeTop();
+  setInterval(() => {
+  const now = Date.now();
+  const delta = now - sessionStart;
+  sessionStart = now;
+  updateActiveProfile(p => {
+    ensureProfileShape(p);
+    p.stats.totalPlayMs += delta;
+  });
+}, 10000);
 
   // expose for home tiles
   window.setSightMode = setSightMode;
