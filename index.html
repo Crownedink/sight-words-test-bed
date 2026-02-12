@@ -516,13 +516,9 @@
   <header>
     <button id="menuToggle" class="menu-btn">☰ Menu</button>
     <div class="app-title"><span class="icon">📚</span> Spelling SightWords</div>
+    <span id="starsPill" class="pill" style="margin-left:auto; font-weight:800;">⭐ Stars: 0</span>
   </header>
 
-  <div class="app-title"><span class="icon">📚</span> Spelling SightWords</div>
-
-  <span id="starsPill" class="pill" style="margin-left:auto; font-weight:800;">
-    ⭐ Stars: 0
-  </span>
   <div id="menuOverlay" class="menu-overlay"></div>
   <div id="sideMenu" class="side-menu">
     <h2>Menu</h2>
@@ -1023,13 +1019,15 @@ function defaultProfile(name) {
   };
 }
 
-PROFILES = loadProfiles();
+PROFILES = loadProfiles().map(ensureProfileShape);
+
 if (!PROFILES.length) {
-  // Create the first profile automatically
-  const p = defaultProfile("Player 1");
+  const p = ensureProfileShape(defaultProfile("Player 1"));
   PROFILES = [p];
   saveProfiles(PROFILES);
   setActiveProfileId(p.id);
+} else {
+  saveProfiles(PROFILES); // keep migrated shape persisted
 }
 
 // Ensure active id is valid
@@ -1045,18 +1043,12 @@ function getActiveProfile() {
 
 function updateActiveProfile(mutatorFn) {
   const idx = PROFILES.findIndex(p => p.id === ACTIVE_PROFILE_ID);
-  if (idx === -1) return; 
-function updateActiveProfile(mutatorFn) {
-  const idx = PROFILES.findIndex(p => p.id === ACTIVE_PROFILE_ID);
   if (idx === -1) return;
 
-  PROFILES[idx] = ensureProfileShape(PROFILES[idx]); // ✅ important
+  PROFILES[idx] = ensureProfileShape(PROFILES[idx]);
   mutatorFn(PROFILES[idx]);
+  PROFILES[idx] = ensureProfileShape(PROFILES[idx]);
 
-  PROFILES[idx] = ensureProfileShape(PROFILES[idx]); // optional safety
-  saveProfiles(PROFILES);
-}
-  mutatorFn(PROFILES[idx]);
   saveProfiles(PROFILES);
 }
 
@@ -1082,14 +1074,14 @@ function awardXpCoins(xpGain, coinGain, starGain) {
     ensureProfileShape(p);
     p.stats.xp += (xpGain || 0);
     p.stats.coins += (coinGain || 0);
-    p.stas.stars += (starGain || 0);
+    p.stats.stars += (starGain || 0);
     const newLevel = xpToLevel(p.stats.xp);
     if (newLevel > p.stats.level) {
       p.stats.level = newLevel;
       // Optional: level-up bonus coins
       p.stats.coins += 10;
       p.stats.stars += 1; // star bonus for leveling up
-      unlockAchievement("level_up");
+    if (!hasAchievement("level_up")) unlockAchievement("level_up");
     }
     p.stats.lastPlayedDay = todayKey();
   });
@@ -1857,6 +1849,10 @@ const DEFAULT_SETS = (function () {
         awardXpCoins(5, 2, 1);
         markWordResult(activeFolder, /*word*/ btn.textContent, true); // better: use the actual prompt word
         unlockAchievement("first_quiz_correct");
+      setTimeout(function () {
+          quizState.currentIndex = (quizState.currentIndex + 1) % data.length;
+          setupQuizQuestion();
+      }, 500);
       }
     });
   });
@@ -1941,6 +1937,10 @@ const DEFAULT_SETS = (function () {
       awardXpCoins(7, 3, 1);
       markWordResult(activeFolder, w, true);
       onFirstCorrectSpelling();
+    setTimeout(function () {
+      spellingState.currentIndex = (spellingState.currentIndex + 1) % data.length;
+      setupSpellingQuestion();
+    }, 500);
     } else {
       spellStatusEl.textContent = 'Try again or swipe to move on. The word is "' + w + '".';
       markWordResult(activeFolder, w, false);
