@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.5D Pet Room Prototype</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #9bdcff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .scene-wrap {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #fff3b8 0%, #8fd6ff 42%, #76bdf2 100%);
+    }
+
+    canvas {
+      width: min(100vw, 960px);
+      height: min(100vh, 640px);
+      border-radius: 24px;
+      box-shadow: 0 18px 60px rgba(25, 71, 124, 0.35);
+      background: #b9ecff;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-wrap">
+    <canvas id="petRoom" width="960" height="640"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("petRoom");
+    const ctx = canvas.getContext("2d");
+
+    let mouseX = 0;
+    let mouseY = 0;
+
+    canvas.addEventListener("pointermove", function (e) {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    });
+
+    const dust = Array.from({ length: 55 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.25 + 0.08,
+      alpha: Math.random() * 0.3 + 0.15
+    }));
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function drawBackground(t) {
+      const px = mouseX * 8;
+      const py = mouseY * 5;
+
+      const sky = ctx.createLinearGradient(0, 0, 0, 360);
+      sky.addColorStop(0, "#8edcff");
+      sky.addColorStop(0.55, "#d8f6ff");
+      sky.addColorStop(1, "#fff0bc");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Window glow / sun
+      const sunPulse = Math.sin(t * 0.001) * 8;
+      const sunGrad = ctx.createRadialGradient(735 + px, 125 + py, 10, 735 + px, 125 + py, 120 + sunPulse);
+      sunGrad.addColorStop(0, "rgba(255, 246, 151, 0.95)");
+      sunGrad.addColorStop(0.5, "rgba(255, 218, 117, 0.45)");
+      sunGrad.addColorStop(1, "rgba(255, 218, 117, 0)");
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(735 + px, 125 + py, 130 + sunPulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Far hills
+      ctx.fillStyle = "#8fd68b";
+      ctx.beginPath();
+      ctx.moveTo(-40 + px * 0.25, 350 + py * 0.2);
+      ctx.quadraticCurveTo(180, 245, 390, 350);
+      ctx.quadraticCurveTo(620, 225, 1000, 340);
+      ctx.lineTo(1000, 640);
+      ctx.lineTo(-40, 640);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#68bd7a";
+      ctx.beginPath();
+      ctx.moveTo(-40 + px * 0.45, 405 + py * 0.25);
+      ctx.quadraticCurveTo(200, 275, 460, 410);
+      ctx.quadraticCurveTo(720, 285, 1000, 405);
+      ctx.lineTo(1000, 640);
+      ctx.lineTo(-40, 640);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawRoom(t) {
+      const px = mouseX * 14;
+      const py = mouseY * 8;
+
+      // Back wall
+      const wallGrad = ctx.createLinearGradient(0, 175, 0, 455);
+      wallGrad.addColorStop(0, "#ffe8ad");
+      wallGrad.addColorStop(1, "#ffc982");
+      ctx.fillStyle = wallGrad;
+      roundRect(90 + px * 0.15, 120 + py * 0.1, 780, 365, 34);
+      ctx.fill();
+
+      // Window
+      ctx.fillStyle = "#ffffff";
+      roundRect(605 + px * 0.2, 150 + py * 0.1, 190, 130, 24);
+      ctx.fill();
+      ctx.fillStyle = "#91dfff";
+      roundRect(620 + px * 0.2, 164 + py * 0.1, 160, 102, 18);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(700 + px * 0.2, 164 + py * 0.1);
+      ctx.lineTo(700 + px * 0.2, 266 + py * 0.1);
+      ctx.moveTo(620 + px * 0.2, 215 + py * 0.1);
+      ctx.lineTo(780 + px * 0.2, 215 + py * 0.1);
+      ctx.stroke();
+
+      // Curtains sway slightly
+      const sway = Math.sin(t * 0.002) * 4;
+      ctx.fillStyle = "#ff8fb3";
+      roundRect(585 + px * 0.22 + sway, 145 + py * 0.1, 35, 145, 18);
+      ctx.fill();
+      roundRect(780 + px * 0.22 - sway, 145 + py * 0.1, 35, 145, 18);
+      ctx.fill();
+
+      // Floor
+      const floorGrad = ctx.createLinearGradient(0, 405, 0, 640);
+      floorGrad.addColorStop(0, "#f7c47a");
+      floorGrad.addColorStop(1, "#e28f55");
+      ctx.fillStyle = floorGrad;
+      ctx.beginPath();
+      ctx.moveTo(75, 415);
+      ctx.lineTo(890, 415);
+      ctx.lineTo(960, 640);
+      ctx.lineTo(0, 640);
+      ctx.closePath();
+      ctx.fill();
+
+      // Floor boards
+      ctx.strokeStyle = "rgba(126, 73, 35, 0.22)";
+      ctx.lineWidth = 2;
+      for (let y = 450; y < 640; y += 38) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(960, y + 12);
+        ctx.stroke();
+      }
+
+      // Rug
+      ctx.fillStyle = "rgba(95, 185, 255, 0.85)";
+      ctx.beginPath();
+      ctx.ellipse(480, 540, 260, 78, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.beginPath();
+      ctx.ellipse(480, 540, 205, 52, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Toy shelf
+      ctx.fillStyle = "#8b5e3c";
+      roundRect(145 + px * 0.35, 288 + py * 0.15, 170, 34, 12);
+      ctx.fill();
+      ctx.fillStyle = "#ffcf5a";
+      ctx.beginPath();
+      ctx.arc(180 + px * 0.35, 270 + py * 0.15, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#8ee66b";
+      ctx.beginPath();
+      ctx.arc(235 + px * 0.35, 268 + py * 0.15, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ae8cff";
+      roundRect(270 + px * 0.35, 252 + py * 0.15, 32, 32, 8);
+      ctx.fill();
+
+      // Pet bed placeholder
+      ctx.fillStyle = "#ff8f70";
+      ctx.beginPath();
+      ctx.ellipse(720 + px * 0.55, 520 + py * 0.25, 115, 50, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ffd1c6";
+      ctx.beginPath();
+      ctx.ellipse(720 + px * 0.55, 508 + py * 0.25, 82, 32, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPlaceholderPet(t) {
+      const bounce = Math.sin(t * 0.006) * 6;
+      const x = 455;
+      const y = 485 + bounce;
+
+      // Shadow
+      ctx.fillStyle = "rgba(55, 39, 30, 0.26)";
+      ctx.beginPath();
+      ctx.ellipse(x, 560, 88 - bounce * 0.7, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Body
+      const bodyGrad = ctx.createRadialGradient(x - 20, y - 30, 10, x, y, 95);
+      bodyGrad.addColorStop(0, "#fff6a6");
+      bodyGrad.addColorStop(1, "#ffb347");
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 70, 78, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ears
+      ctx.fillStyle = "#ff8f70";
+      ctx.beginPath();
+      ctx.moveTo(x - 48, y - 48);
+      ctx.lineTo(x - 72, y - 103);
+      ctx.lineTo(x - 20, y - 72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + 48, y - 48);
+      ctx.lineTo(x + 72, y - 103);
+      ctx.lineTo(x + 20, y - 72);
+      ctx.closePath();
+      ctx.fill();
+
+      // Face
+      ctx.fillStyle = "#3c2a1e";
+      ctx.beginPath();
+      ctx.arc(x - 24, y - 12, 7, 0, Math.PI * 2);
+      ctx.arc(x + 24, y - 12, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#8a4d36";
+      ctx.beginPath();
+      ctx.arc(x, y + 10, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#8a4d36";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x - 10, y + 18, 13, 0.1, Math.PI * 0.9);
+      ctx.arc(x + 10, y + 18, 13, Math.PI * 0.1, Math.PI * 0.9);
+      ctx.stroke();
+    }
+
+    function drawParticles(t) {
+      ctx.save();
+      dust.forEach(p => {
+        p.y -= p.speed;
+        p.x += Math.sin(t * 0.001 + p.y * 0.02) * 0.08;
+        if (p.y < -10) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+        ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    function drawForeground(t) {
+      const sway = Math.sin(t * 0.002) * 4;
+
+      // Foreground plants
+      ctx.fillStyle = "#3e9f63";
+      for (let i = 0; i < 12; i++) {
+        const x = 30 + i * 28;
+        const h = 35 + (i % 4) * 8;
+        ctx.beginPath();
+        ctx.ellipse(x + sway * 0.25, 625 - h / 2, 8, h, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let i = 0; i < 12; i++) {
+        const x = 900 - i * 26;
+        const h = 30 + (i % 5) * 7;
+        ctx.beginPath();
+        ctx.ellipse(x - sway * 0.25, 625 - h / 2, 8, h, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function animate(t) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground(t);
+      drawRoom(t);
+      drawPlaceholderPet(t);
+      drawParticles(t);
+      drawForeground(t);
+      requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
