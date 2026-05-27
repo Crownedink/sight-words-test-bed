@@ -28,6 +28,10 @@
       --header-start: #1f3154;
       --header-end: #29456f;
       --header-border: rgba(210, 230, 255, 0.22);
+      --card-bg-start: rgba(36, 59, 99, 0.94);
+      --card-bg-end: rgba(31, 49, 84, 0.96);
+      --card-border-soft: rgba(210, 230, 255, 0.22);
+      --card-shadow-soft: rgba(10, 20, 40, 0.28);
   }
     body.theme-light {
       /* Light theme – playful pastel */
@@ -49,6 +53,10 @@
       --header-start: #8fd3ff;
       --header-end: #fff4c8;
       --header-border: rgba(130, 180, 220, 0.28);
+      --card-bg-start: rgba(255,255,255,.92);
+      --card-bg-end: rgba(255,248,235,.95);
+      --card-border-soft: rgba(255,255,255,.75);
+      --card-shadow-soft: rgba(90,140,200,.15);
     }
 
     * { box-sizing: border-box; }
@@ -351,19 +359,14 @@
       width: 100%;
       height: 55vh;
       min-height: 260px;
-      background:
-      linear-gradient(
-      180deg,
-      rgba(255,255,255,.92),
-      rgba(255,248,235,.95)
-      );
+      background: linear-gradient( 180deg,
+        var(--card-bg-start),
+        var(--card-bg-end)
+  );
 
-      backdrop-filter: blur(8px);
+      border: 2px solid var(--card-border-soft);
 
-      border: 2px solid rgba(255,255,255,.75);
-
-      box-shadow:
-      0 12px 30px rgba(90,140,200,.15);
+      box-shadow: 0 12px 30px var(--card-shadow-soft);
       border: 1px solid var(--border);
       border-radius: 1.25rem;
       display: flex;
