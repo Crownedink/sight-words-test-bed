@@ -818,6 +818,12 @@
         <div class="row">
           <label>Practice:</label>
           <select id="mathPracticeType">
+         <label>Difficulty:</label>
+        <select id="mathPracticeDifficulty">
+            <option value="easy" selected>Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
             <option value="addition">Addition</option>
             <option value="subtraction">Subtraction</option>
             <option value="multiplication">Multiplication</option>
@@ -847,6 +853,12 @@
         <div class="row">
           <label>Math Sprint 60:</label>
           <select id="mathChallengeType">
+          <label>Difficulty:</label>
+          <select id="mathChallengeDifficulty">
+            <option value="easy" selected>Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
             <option value="addition">Addition</option>
             <option value="subtraction">Subtraction</option>
             <option value="multiplication">Multiplication</option>
@@ -2242,6 +2254,7 @@ const DEFAULT_SETS = (function () {
 
   // Rocket Math practice
   const mathPracticeTypeSel = document.getElementById('mathPracticeType');
+  const mathPracticeDifficultySel = document.getElementById('mathPracticeDifficulty');
   const mathPracticeScorePill = document.getElementById('mathPracticeScorePill');
   const mathPracticeProblemEl = document.getElementById('mathPracticeProblem');
   const mathPracticeAnswerEl = document.getElementById('mathPracticeAnswer');
@@ -2269,46 +2282,68 @@ const DEFAULT_SETS = (function () {
     } catch (e) {}
   }
 
-  function generateMathProblem(type) {
-    let a, b, op, answer;
-    switch (type) {
+  function generateMathProblem(type, difficulty) {
+    difficulty = difficulty || 'easy';
+
+     let max;
+     if (difficulty === 'easy') max = 10;
+     else if (difficulty === 'medium') max = 25;
+     else max = 100;
+
+     let a, b, op, answer;
+
+     switch (type) {
       case 'addition':
-        a = Math.floor(Math.random() * 10) + 1;
-        b = Math.floor(Math.random() * 10) + 1;
+        a = Math.floor(Math.random() * max) + 1;
+        b = Math.floor(Math.random() * max) + 1;
         op = '+';
         answer = a + b;
         break;
-      case 'subtraction':
-        a = Math.floor(Math.random() * 10) + 1;
-        b = Math.floor(Math.random() * a);
-        op = '−';
-        answer = a - b;
-        break;
-      case 'multiplication':
-        a = Math.floor(Math.random() * 10) + 1;
-        b = Math.floor(Math.random() * 10) + 1;
-        op = '×';
-        answer = a * b;
-        break;
-      case 'division':
-        b = Math.floor(Math.random() * 9) + 1;
-        answer = Math.floor(Math.random() * 10) + 1;
-        a = answer * b;
-        op = '÷';
-        break;
-      case 'mixed':
-      default:
-        const types = ['addition', 'subtraction', 'multiplication', 'division'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        return generateMathProblem(randomType);
-    }
-    return { a: a, b: b, op: op, answer: answer };
+
+    case 'subtraction':
+      a = Math.floor(Math.random() * max) + 1;
+      b = Math.floor(Math.random() * a);
+      op = '−';
+      answer = a - b;
+      break;
+
+    case 'multiplication':
+      if (difficulty === 'easy') max = 10;
+      else if (difficulty === 'medium') max = 12;
+      else max = 20;
+
+      a = Math.floor(Math.random() * max) + 1;
+      b = Math.floor(Math.random() * max) + 1;
+      op = '×';
+      answer = a * b;
+      break;
+
+    case 'division':
+      if (difficulty === 'easy') max = 10;
+      else if (difficulty === 'medium') max = 12;
+      else max = 20;
+
+      b = Math.floor(Math.random() * max) + 1;
+      answer = Math.floor(Math.random() * max) + 1;
+      a = answer * b;
+      op = '÷';
+      break;
+
+    case 'mixed':
+    default:
+      const types = ['addition', 'subtraction', 'multiplication', 'division'];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      return generateMathProblem(randomType, difficulty);
   }
+
+  return { a, b, op, answer, difficulty };
+}
 
   function setupMathPractice() {
     const type = mathPracticeTypeSel.value;
     mathPracticeState.type = type;
-    mathPracticeState.current = generateMathProblem(type);
+    const difficulty = mathPracticeDifficultySel.value;
+    mathPracticeState.current = generateMathProblem(type, difficulty);
     const p = mathPracticeState.current;
     mathPracticeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
     mathPracticeAnswerEl.textContent = 'Choose an answer below.';
@@ -2386,6 +2421,7 @@ const DEFAULT_SETS = (function () {
     mathTouchStartX = null;
   }, { passive: true });
   mathPracticeTypeSel.onchange = setupMathPractice;
+  mathPracticeDifficultySel.onchange = setupMathPractice;
 
   // Math challenge
   const MATH_CHALLENGE_KEY = 'math_challenge_scores_v1';
@@ -2401,6 +2437,7 @@ const DEFAULT_SETS = (function () {
   }
 
   const mathChallengeTypeSel = document.getElementById('mathChallengeType');
+  const mathChallengeDifficultySel = document.getElementById('mathChallengeDifficulty');
   const mathChallengeStartBtn = document.getElementById('mathChallengeStartBtn');
   const mathChallengeTimerEl = document.getElementById('mathChallengeTimer');
   const mathChallengeScorePill = document.getElementById('mathChallengeScorePill');
@@ -2447,7 +2484,8 @@ const DEFAULT_SETS = (function () {
   function setupMathChallengeQuestion() {
     if (!mathChallengeState) return;
     const type = mathChallengeState.type;
-    mathChallengeState.current = generateMathProblem(type);
+    const difficulty = mathChallengeDifficultySel.value;
+    mathChallengeState.current = generateMathProblem(type, difficulty);
     const p = mathChallengeState.current;
     mathChallengeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
     mathChallengeAnswerEl.textContent = 'Choose an answer.';
