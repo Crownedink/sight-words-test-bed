@@ -2808,13 +2808,16 @@ function renderHudAndProfileStats() {
   renderSwLeaderboardPage();
   renderMathLeaderboards();
   renderMathHomeTop();
-  setInterval(() => {
-  const now = Date.now();
-  const delta = now - sessionStart;
-  sessionStart = now;
-  updateActiveProfile(p => {
-    ensureProfileShape(p);
-    p.stats.totalPlayMs += delta;
+  let lastPlaySave = Date.now();
+
+  setInterval(function () {
+    const now = Date.now();
+    const delta = now - lastPlaySave;
+    lastPlaySave = now;
+
+    updateActiveProfile(function (p) {
+      ensureProfileShape(p);
+      p.stats.totalPlayMs += delta;
   });
 }, 10000);
 
