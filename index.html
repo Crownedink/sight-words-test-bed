@@ -22,6 +22,10 @@
       --danger: #ff9a9a;
       --success: #9be58f;
       --border: rgba(210, 230, 255, 0.22);
+      --page-sky-top: #16213f;
+      --page-sky-mid: #243b63;
+      --page-sky-bottom: #3f4f73;
+      
   }
     body.theme-light {
       /* Light theme – playful pastel */
@@ -37,6 +41,9 @@
       --danger: #ef4444;
       --success: #22c55e;
       --border: #c7d2fe;
+      --page-sky-top: #aee6ff;
+      --page-sky-mid: #dff7ff;
+      --page-sky-bottom: #fff5d6;
     }
 
     * { box-sizing: border-box; }
@@ -47,13 +54,12 @@
     color: var(--text);
     font-family: system-ui, -apple-system,
       Segoe UI, Roboto, Arial, sans-serif;
-
     background:
       linear-gradient(
         180deg,
-       #16213f 0%,
-      #243b63 42%,
-      #3f4f73 100%
+        var(--page-sky-top) 0%,
+        var(--page-sky-mid) 42%,
+        var(--page-sky-bottom) 100%
       );
     overflow-x: hidden;
     position: relative;
