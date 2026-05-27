@@ -16,12 +16,15 @@
       --card-soft: #020617;
       --text: #e5e7eb;
       --muted: #9ca3af;
-      --accent: #f97316;            /* orange */
-      --accent-soft: rgba(249, 115, 22, 0.2);
-      --accent2: #22c55e;           /* green */
-      --danger: #f97373;
-      --success: #4ade80;
-      --border: #1f2937;
+      --accent: #5ec8ff;
+      --accent-soft: rgba(94,200,255,.18);
+
+      --accent2: #79d36d;
+
+      --danger: #ff9a9a;
+      --success: #76d977;
+
+      --border: rgba(130,180,220,.2);
     }
     body.theme-light {
       /* Light theme – playful pastel */
@@ -40,14 +43,61 @@
     }
 
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: radial-gradient(circle at top, #1d2a5f 0%, var(--bg) 40%, #020617 100%);
-      color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
+   html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    color: var(--text);
+    font-family: system-ui, -apple-system,
+      Segoe UI, Roboto, Arial, sans-serif;
 
+    background:
+      linear-gradient(
+        180deg,
+        #aee6ff 0%,
+        #dff7ff 35%,
+        #fff5d6 100%
+      );
+
+    overflow-x: hidden;
+    position: relative;
+  }
+   body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+
+    background:
+      radial-gradient(circle at 20% 15%,
+        rgba(255,255,255,0.85) 0,
+        rgba(255,255,255,0) 110px),
+
+      radial-gradient(circle at 70% 18%,
+        rgba(255,255,255,0.7) 0,
+        rgba(255,255,255,0) 90px),
+
+      radial-gradient(circle at 45% 8%,
+        rgba(255,255,255,0.55) 0,
+        rgba(255,255,255,0) 70px);
+
+    animation: floatSky 25s ease-in-out infinite;
+  }
+
+    @keyframes floatSky {
+      0% {
+          transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+
+      100% {
+         transform: translateY(0px);
+      }
+    }
     .app {
       max-width: 960px;
       margin: 0 auto;
@@ -193,7 +243,7 @@
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 0.4rem 0.8rem;
+      padding: .55rem 1rem;
       font-size: 0.9rem;
       cursor: pointer;
     }
@@ -208,7 +258,7 @@
     .tile {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 1rem;
+      border-radius: 1.5rem;
       padding: 1rem;
       cursor: pointer;
       display: flex;
@@ -262,7 +312,7 @@
       align-items: center;
       justify-content: center;
       font-size: 0.75rem;
-      padding: 0.25rem 0.6rem;
+      padding: .55rem 1rem;
       border-radius: 999px;
       background: var(--card-soft);
       border: 1px solid var(--border);
@@ -290,8 +340,19 @@
       width: 100%;
       height: 55vh;
       min-height: 260px;
-      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.1), transparent),
-              linear-gradient(180deg, var(--bg-alt), var(--card));
+      background:
+      linear-gradient(
+      180deg,
+      rgba(255,255,255,.92),
+      rgba(255,248,235,.95)
+      );
+
+      backdrop-filter: blur(8px);
+
+      border: 2px solid rgba(255,255,255,.75);
+
+      box-shadow:
+      0 12px 30px rgba(90,140,200,.15);
       border: 1px solid var(--border);
       border-radius: 1.25rem;
       display: flex;
@@ -332,7 +393,7 @@
       font-size: 1rem;
     }
 
-    /* Make the Challenge 60 play button feel central and obvious */
+    /* Make the Speed Challenge play button feel central and obvious */
     .sw-play-btn {
       width: 100%;
       max-width: 260px;
@@ -525,8 +586,8 @@
     <div class="menu-note">Choose a section to practice or adjust settings.</div>
     <nav>
       <button data-view="home">🏠 Home</button>
-      <button data-view="sight">🔤 Sight Words</button>
-      <button data-view="math">➕ Quick Math</button>
+      <button data-view="sight">🔤 Reading Adventure</button>
+      <button data-view="math">➕ Rocket Math</button>
       <button data-view="leaderboards">🏆 Leaderboards</button>
       <button data-view="settings">⚙️ Settings</button>
     </nav>
@@ -536,7 +597,7 @@
     <!-- HOME VIEW -->
     <section id="view-home" class="view active">
       <h1>Learning Hub 🎒</h1>
-      <p class="hint">Tap a tile to start practicing sight words or math. High scores will show up here too!</p>
+      <p class="hint">Tap a tile to start practicing Reading Adventure or math. High scores will show up here too!</p>
 
     <div id="homeHud" class="settings-group" style="margin-top:0.75rem;">
       <div id="homeHudLine1" class="flex-between"></div>
@@ -546,18 +607,18 @@
       <div class="tile-grid">
         <div class="tile" onclick="switchView('sight')">
           <div>
-            <div class="tile-title"><span>🔤</span> Sight Words</div>
+            <div class="tile-title"><span>🔤</span> Reading Adventure</div>
             <div class="tile-subtitle">Flashcards, quiz mode, spelling, and a 60-second challenge.</div>
           </div>
           <div class="row">
             <span class="pill">Folders + TTS</span>
-            <span class="pill">Challenge 60</span>
+            <span class="pill">Speed Challenge</span>
           </div>
         </div>
 
         <div class="tile" onclick="switchView('math')">
           <div>
-            <div class="tile-title"><span>➕</span> Quick Math</div>
+            <div class="tile-title"><span>➕</span> Rocket Math</div>
             <div class="tile-subtitle">Addition, subtraction, multiplication, division, and mixed drills.</div>
           </div>
           <div class="row">
@@ -568,7 +629,7 @@
 
         <div class="tile" onclick="switchView('sight'); setSightMode('challenge');">
           <div>
-            <div class="tile-title"><span>⏱️</span> Sight Words Challenge 60</div>
+            <div class="tile-title"><span>⏱️</span> Reading Adventure Speed Challenge</div>
             <div class="tile-subtitle">60 seconds of spelling-only sight word challenges.</div>
           </div>
           <div class="row">
@@ -596,15 +657,15 @@
       </div>
     </section>
 
-    <!-- SIGHT WORDS VIEW -->
+    <!-- Reading Adventure VIEW -->
     <section id="view-sight" class="view">
-      <h1>🔤 Sight Words</h1>
+      <h1>🔤 Reading Adventure</h1>
 
       <div class="row">
         <label>Folder:</label>
         <select id="folderSel"></select>
         <span class="pill" id="countPill"></span>
-        <button id="sightMenuToggle" class="btn-small btn-ghost">Sight Words Menu ▾</button>
+        <button id="sightMenuToggle" class="btn-small btn-ghost">Reading Adventure Menu ▾</button>
       </div>
 
       <div id="sightMenuPanel" class="stack" style="display:none;">
@@ -625,7 +686,7 @@
         <button class="subnav-btn active" data-sightmode="flashcards">Flashcards</button>
         <button class="subnav-btn" data-sightmode="quiz">Quiz Mode</button>
         <button class="subnav-btn" data-sightmode="spelling">Spelling Mode</button>
-        <button class="subnav-btn" data-sightmode="challenge">Challenge 60</button>
+        <button class="subnav-btn" data-sightmode="challenge">Speed Challenge</button>
       </div>
 
       <!-- FLASHCARDS MODE -->
@@ -706,11 +767,11 @@
         </div>
       </div>
 
-      <!-- SIGHT WORDS CHALLENGE 60 (SPELLING ONLY) -->
+      <!-- Reading Adventure Speed Challenge (SPELLING ONLY) -->
            <div id="sight-challenge" class="sight-mode" style="display:none;">
         <div class="row flex-between">
           <div>
-            <strong>Challenge 60 (Spelling Only)</strong>
+            <strong>Speed Challenge (Spelling Only)</strong>
             <div class="hint">
               60 seconds. Each correct spelling = 10 points. Press Enter to submit. Next word auto-plays.
             </div>
@@ -746,9 +807,9 @@
 
     </section>
 
-    <!-- QUICK MATH VIEW -->
+    <!-- Rocket Math VIEW -->
     <section id="view-math" class="view">
-      <h1>➕ Quick Math</h1>
+      <h1>➕ Rocket Math</h1>
       <p class="hint">Practice basic math or try a 60-second sprint. Perfect for quick reps.</p>
 
       <div class="subnav">
@@ -803,7 +864,7 @@
         </div>
 
       <div class="card" id="mathChallengeCard">
-  <!-- Time & score inside the card (matches Sight Words Challenge 60) -->
+  <!-- Time & score inside the card (matches Reading Adventure Speed Challenge) -->
       <div class="card-metrics">
         <span class="pill pill-large" id="mathChallengeTimer">Time: 60</span>
         <span class="pill pill-large" id="mathChallengeScorePill">Score: 0</span>
@@ -831,11 +892,11 @@
     <section id="view-leaderboards" class="view">
       <h1>🏆 Leaderboards</h1>
       <div class="settings-group">
-        <h3>🔤 Sight Words Challenge</h3>
+        <h3>🔤 Reading Adventure Challenge</h3>
         <div id="swLeaderboardPage" class="leaderboard"></div>
       </div>
       <div class="settings-group">
-        <h3>➕ Quick Math</h3>
+        <h3>➕ Rocket Math</h3>
         <div id="mathLeaderboardsPage" class="stack"></div>
       </div>
     </section>
@@ -869,7 +930,7 @@
       
       <div class="settings-group">
         <h3>App Info</h3>
-        <p class="hint">Practice sight words and basic math. Install on your device for offline use.</p>
+        <p class="hint">Practice Reading Adventure and basic math. Install on your device for offline use.</p>
         <button class="btn-small" onclick="location.href='how-to-install.html'">How to install</button>
       </div>
     </section>
@@ -1209,7 +1270,7 @@ function folderMasterySummary(folderName, wordsArray) {
   return { mastered, total: (wordsArray || []).length };
 }
 
- // --- Sight words data ---
+ // --- Reading Adventure data ---
 const BASE_DEFAULT_SETS = {
   "Top 20": [
     ["the", "The cat is on the bed."],
@@ -1581,7 +1642,7 @@ const DEFAULT_SETS = (function () {
     resetSpellingState();
   };
 
-  // Sight words menu
+  // Reading Adventure menu
   const sightMenuToggle = document.getElementById('sightMenuToggle');
   const sightMenuPanel = document.getElementById('sightMenuPanel');
   sightMenuToggle.onclick = function () {
@@ -1972,7 +2033,7 @@ const DEFAULT_SETS = (function () {
     spellTouchStartX = null;
   }, { passive: true });
 
-  // Sight challenge 60 (spelling only)
+  // Sight Speed Challenge (spelling only)
   const SW_CHALLENGE_KEY = 'sw_challenge_scores_v2';
   let swChallengeScores = getSwChallengeScores();
 
@@ -1983,18 +2044,18 @@ const DEFAULT_SETS = (function () {
   function renderSwHomeTop() {
     const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; });
     if (!list.length) {
-      homeSwTopEl.innerHTML = '<div class="hint">Sight Words Challenge: no scores yet.</div>';
+      homeSwTopEl.innerHTML = '<div class="hint">Reading Adventure Challenge: no scores yet.</div>';
       return;
     }
     const best = list[0];
     homeSwTopEl.innerHTML =
-      '<div class="leaderboard-row"><span>Sight Words Challenge</span><span class="score">' +
+      '<div class="leaderboard-row"><span>Reading Adventure Challenge</span><span class="score">' +
       best.score + ' pts (' + (best.name || 'Player') + ')</span></div>';
   }
   function renderSwLeaderboardPage() {
     const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; }).slice(0, 10);
     if (!list.length) {
-      swLeaderboardPageEl.innerHTML = '<div class="hint">No scores yet. Play Challenge 60 to set a record.</div>';
+      swLeaderboardPageEl.innerHTML = '<div class="hint">No scores yet. Play Speed Challenge to set a record.</div>';
       return;
     }
     swLeaderboardPageEl.innerHTML = '';
@@ -2183,7 +2244,7 @@ const DEFAULT_SETS = (function () {
     swChallengeState = null;
   }
 
-  // Quick math practice
+  // Rocket Math practice
   const mathPracticeTypeSel = document.getElementById('mathPracticeType');
   const mathPracticeScorePill = document.getElementById('mathPracticeScorePill');
   const mathPracticeProblemEl = document.getElementById('mathPracticeProblem');
@@ -2572,7 +2633,7 @@ const DEFAULT_SETS = (function () {
       }
     });
     if (!html) {
-      homeMathTopEl.innerHTML = '<div class="hint">Quick Math: no scores yet.</div>';
+      homeMathTopEl.innerHTML = '<div class="hint">Rocket Math: no scores yet.</div>';
     } else {
       homeMathTopEl.innerHTML = html;
     }
