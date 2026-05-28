@@ -663,7 +663,22 @@
   opacity: 0.85;
   line-height: 1.3;
 }
+.reading-focus-active #readingAdventureHub,
+.reading-focus-active #sightMenuToggle,
+.reading-focus-active #sightMenuPanel {
+  display: none !important;
+}
 
+#readingFocusHeader {
+  margin: 0.75rem 0;
+}
+
+#readingBackBtn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
     @media (max-width: 640px) {
       header {
         justify-content: flex-start;
@@ -784,7 +799,7 @@
         <div class="hint">Default folders can’t be renamed or deleted, but you can add new words to them.</div>
       </div>
 
-      <div class="reading-mode-panel">
+      <div id="readingAdventureHub" class="reading-mode-panel">
         <div class="reading-panel-title">
           ✨ Choose Your Adventure
         </div>
@@ -832,6 +847,11 @@
           </button>
 
         </div>
+      </div>
+
+      <div id="readingFocusHeader" class="row flex-between" style="display:none;">
+        <button id="readingBackBtn" class="btn-small">← Back to Adventure</button>
+        <strong id="readingFocusTitle">Reading Adventure</strong>
       </div>
 
       <!-- FLASHCARDS MODE -->
@@ -1984,6 +2004,23 @@ const DEFAULT_SETS = (function () {
     document.querySelectorAll('.sight-mode').forEach(function (sec) {
       sec.style.display = 'none';
     });
+    document.body.classList.add('reading-focus-active');
+
+    const readingFocusHeader = document.getElementById('readingFocusHeader');
+    const readingFocusTitle = document.getElementById('readingFocusTitle');
+
+    if (readingFocusHeader) readingFocusHeader.style.display = 'flex';
+
+    const titles = {
+      flashcards: '📖 Flashcards',
+      quiz: '🎯 Quiz Time',
+      spelling: '✏️ Spelling',
+      challenge: '⚡ Speed Challenge'
+    };
+
+    if (readingFocusTitle) {
+      readingFocusTitle.textContent = titles[mode] || 'Reading Adventure';
+    }
     document.getElementById('sight-' + mode).style.display = 'block';
     if (mode === 'quiz') { resetQuizState(); setupQuizQuestion(); }
     if (mode === 'spelling') { resetSpellingState(); }
@@ -1992,6 +2029,27 @@ const DEFAULT_SETS = (function () {
   sightSubnavButtons.forEach(function (btn) {
     btn.addEventListener('click', function () { setSightMode(btn.dataset.sightmode); });
   });
+
+  const readingBackBtn = document.getElementById('readingBackBtn');
+
+  if (readingBackBtn) {
+    readingBackBtn.onclick = function () {
+      document.body.classList.remove('reading-focus-active');
+
+      const readingFocusHeader = document.getElementById('readingFocusHeader');
+      if (readingFocusHeader) readingFocusHeader.style.display = 'none';
+
+      document.querySelectorAll('.sight-mode').forEach(function (sec) {
+        sec.style.display = 'none';
+      });
+
+      document.getElementById('sight-flashcards').style.display = 'block';
+
+      sightSubnavButtons.forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.sightmode === 'flashcards');
+      });
+    };
+  }
 
   // Quiz mode
   let quizState = { order: [], currentIndex: 0, score: 0 };
