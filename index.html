@@ -689,7 +689,6 @@
       <div id="sight-flashcards" class="sight-mode">
         <div class="row">
           <button id="prevBtn">⟵ Prev</button>
-          <button id="flipBtn">Flip</button>
           <button id="nextBtn">Next ⟶</button>
           <button id="shuffleBtn">Shuffle</button>
           <button id="speakBtn">🔊 Speak</button>
@@ -734,7 +733,6 @@
           <button class="math-choice-btn" data-qindex="3"></button>
         </div>
         <div class="row">
-          <span class="pill" id="quizScorePill">Score: 0</span>
           <button id="quizNextBtn" class="btn-small">Next Question</button>
         </div>
       </div>
@@ -1612,7 +1610,6 @@ const DEFAULT_SETS = (function () {
 
   document.getElementById('prevBtn').onclick = prevFlashcard;
   document.getElementById('nextBtn').onclick = nextFlashcard;
-  document.getElementById('flipBtn').onclick = flipFlashcard;
   document.getElementById('shuffleBtn').onclick = shuffleFlashcards;
   modeSel.onchange = function () { flipped = false; renderFlashcard(); };
 
@@ -1622,7 +1619,26 @@ const DEFAULT_SETS = (function () {
     if (e.key === 'ArrowRight') { e.preventDefault(); nextFlashcard(); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); prevFlashcard(); }
   });
+ // Flashcard swipe
+  let cardTouchStartX = null;
 
+  card.addEventListener('touchstart', function (e) {
+    cardTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  card.addEventListener('touchend', function (e) {
+    if (cardTouchStartX === null) return;
+
+    const dx = e.changedTouches[0].screenX - cardTouchStartX;
+
+    if (Math.abs(dx) > 50) {
+      if (dx < 0) nextFlashcard();
+      else prevFlashcard();
+  }
+
+  cardTouchStartX = null;
+}, { passive: true });
+  
   folderSel.onchange = function () {
     activeFolder = folderSel.value;
     data = getFolderData(activeFolder);
@@ -1871,7 +1887,9 @@ const DEFAULT_SETS = (function () {
     const w = pair[0];
     const s = pair[1];
     quizPromptEl.textContent = 'Tap the card to hear the word.';
-    quizSentenceHintEl.textContent = s + '  (Swipe left or right to advance.)';
+    quizSentenceHintEl.innerHTML =
+      '<div style="font-size:1rem; margin-bottom:0.35rem;">' + s + '</div>' +
+      '<div class="hint">Swipe left or right to advance.</div>';
     const allIdx = data.map(function (_, ii) { return ii; });
     const distractors = allIdx.filter(function (j) { return j !== idx; });
     shuffleOrder(distractors);
@@ -1989,6 +2007,14 @@ const DEFAULT_SETS = (function () {
     const w = data[idx][0];
     speak(w);
   };
+  spellCard.addEventListener('click', function () {
+    if (!data.length) return;
+
+    const idx = spellingState.order[spellingState.currentIndex];
+    const w = data[idx][0];
+
+    speak(w);
+  });
   spellPlayLettersBtn.onclick = function () {
     if (!data.length) return;
     const idx = spellingState.order[spellingState.currentIndex];
