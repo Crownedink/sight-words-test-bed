@@ -1859,7 +1859,7 @@ const DEFAULT_SETS = (function () {
     shuffleOrder(quizState.order);
     quizState.currentIndex = 0;
     quizState.score = 0;
-    quizScorePill.textContent = 'Score: 0';
+    if (quizScorePill) quizScorePill.textContent = 'Score: 0';
     clearQuizChoices();
   }
   function clearQuizChoices() {
@@ -1934,7 +1934,7 @@ const DEFAULT_SETS = (function () {
       });
       if (isCorrect) {
         quizState.score += 10;
-        quizScorePill.textContent = 'Score: ' + quizState.score;
+        if (quizScorePill) quizScorePill.textContent = 'Score: ' + quizState.score;
         awardXpCoins(5, 2, 1);
         markWordResult(activeFolder, /*word*/ btn.textContent, true); // better: use the actual prompt word
         unlockAchievement("first_quiz_correct");
