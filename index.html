@@ -679,6 +679,21 @@
   color: var(--accent);
   font-weight: 700;
 }
+
+  .math-focus-active #mathAdventureHub {
+     display: none !important;
+   }
+
+   #mathFocusHeader {
+     margin: 0.75rem 0;
+  }
+
+  #mathBackBtn {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+     color: var(--accent);
+     font-weight: 700;
+  }
     @media (max-width: 640px) {
       header {
         justify-content: flex-start;
@@ -975,10 +990,26 @@
       <h1>➕ Rocket Math</h1>
       <p class="hint">Practice basic math or try a 60-second sprint. Perfect for quick reps.</p>
 
-      <div class="subnav">
-        <button class="subnav-btn active" data-mathmode="practice">Practice</button>
-        <button class="subnav-btn" data-mathmode="challenge">Math Sprint 60</button>
-      </div>
+  </div>
+    <div class="reading-mode-grid">
+      <button class="reading-mode-card active" data-mathmode="practice">
+        <div class="mode-emoji">➕</div>
+        <div class="mode-title">Math Practice</div>
+        <div class="mode-subtitle">Take your time and try again</div>
+      </button>
+
+      <button class="reading-mode-card" data-mathmode="challenge">
+        <div class="mode-emoji">⚡</div>
+        <div class="mode-title">Math Sprint 60</div>
+        <div class="mode-subtitle">Beat the clock</div>
+      </button>
+    </div>
+  </div>
+
+  <div id="mathFocusHeader" class="row flex-between" style="display:none;">
+    <button id="mathBackBtn" class="btn-small">← Back to Math Adventure</button>
+    <strong id="mathFocusTitle">Quick Math</strong>
+</div>
 
       <!-- PRACTICE MODE -->
       <div id="math-practice" class="math-mode">
@@ -2909,7 +2940,7 @@ const DEFAULT_SETS = (function () {
   }
 
   // Math subnav
-  const mathSubnavButtons = document.querySelectorAll('.subnav button[data-mathmode]');
+  const mathSubnavButtons = document.querySelectorAll('[data-mathmode]');
   function setMathMode(mode) {
     mathSubnavButtons.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.mathmode === mode);
@@ -2919,10 +2950,45 @@ const DEFAULT_SETS = (function () {
     });
     document.getElementById('math-' + mode).style.display = 'block';
   }
-  mathSubnavButtons.forEach(function (btn) {
-    btn.addEventListener('click', function () { setMathMode(btn.dataset.mathmode); });
-  });
+    document.body.classList.add('math-focus-active');
 
+    const mathFocusHeader = document.getElementById('mathFocusHeader');
+    const mathFocusTitle = document.getElementById('mathFocusTitle');
+
+    if (mathFocusHeader) mathFocusHeader.style.display = 'flex';
+
+    const titles = {
+      practice: '➕ Math Practice',
+      challenge: '⚡ Math Sprint 60'
+    };
+
+    if (mathFocusTitle) {
+      mathFocusTitle.textContent = titles[mode] || 'Quick Math';
+    }
+
+    if (mode === 'practice') setupMathPractice();
+  }
+
+  const mathBackBtn = document.getElementById('mathBackBtn');
+
+  if (mathBackBtn) {
+    mathBackBtn.onclick = function () {
+      document.body.classList.remove('math-focus-active');
+
+      const mathFocusHeader = document.getElementById('mathFocusHeader');
+      if (mathFocusHeader) mathFocusHeader.style.display = 'none';
+
+      document.querySelectorAll('.math-mode').forEach(function (sec) {
+        sec.style.display = 'none';
+      });
+
+      document.getElementById('math-practice').style.display = 'block';
+
+      mathSubnavButtons.forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.mathmode === 'practice');
+      });
+    };
+  }
   // ------------------------------
 // Profile UI wiring
 // ------------------------------
