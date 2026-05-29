@@ -990,25 +990,26 @@
       <h1>➕ Rocket Math</h1>
       <p class="hint">Practice basic math or try a 60-second sprint. Perfect for quick reps.</p>
 
-  </div>
-    <div class="reading-mode-grid">
-      <button class="reading-mode-card active" data-mathmode="practice">
-        <div class="mode-emoji">➕</div>
-        <div class="mode-title">Math Practice</div>
-        <div class="mode-subtitle">Take your time and try again</div>
-      </button>
 
-      <button class="reading-mode-card" data-mathmode="challenge">
-        <div class="mode-emoji">⚡</div>
-        <div class="mode-title">Math Sprint 60</div>
-        <div class="mode-subtitle">Beat the clock</div>
-      </button>
-    </div>
+
+  <div class="reading-mode-grid">
+    <button class="reading-mode-card active" data-mathmode="practice">
+      <div class="mode-emoji">➕</div>
+      <div class="mode-title">Math Practice</div>
+      <div class="mode-subtitle">Take your time and try again</div>
+    </button>
+
+    <button class="reading-mode-card" data-mathmode="challenge">
+      <div class="mode-emoji">⚡</div>
+      <div class="mode-title">Math Sprint 60</div>
+      <div class="mode-subtitle">Beat the clock</div>
+    </button>
   </div>
 
-  <div id="mathFocusHeader" class="row flex-between" style="display:none;">
-    <button id="mathBackBtn" class="btn-small">← Back to Math Adventure</button>
-    <strong id="mathFocusTitle">Quick Math</strong>
+
+<div id="mathFocusHeader" class="row flex-between" style="display:none;">
+  <button id="mathBackBtn" class="btn-small">← Back to Math Adventure</button>
+  <strong id="mathFocusTitle">Rocket Math</strong>
 </div>
 
       <!-- PRACTICE MODE -->
@@ -2940,54 +2941,64 @@ const DEFAULT_SETS = (function () {
   }
 
   // Math subnav
-  const mathSubnavButtons = document.querySelectorAll('[data-mathmode]');
-  function setMathMode(mode) {
-    mathSubnavButtons.forEach(function (btn) {
-      btn.classList.toggle('active', btn.dataset.mathmode === mode);
-    });
+const mathSubnavButtons = document.querySelectorAll('[data-mathmode]');
+
+function setMathMode(mode) {
+  mathSubnavButtons.forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.mathmode === mode);
+  });
+
+  document.querySelectorAll('.math-mode').forEach(function (sec) {
+    sec.style.display = 'none';
+  });
+
+  document.getElementById('math-' + mode).style.display = 'block';
+
+  document.body.classList.add('math-focus-active');
+
+  const mathFocusHeader = document.getElementById('mathFocusHeader');
+  const mathFocusTitle = document.getElementById('mathFocusTitle');
+
+  if (mathFocusHeader) mathFocusHeader.style.display = 'flex';
+
+  const titles = {
+    practice: '➕ Math Practice',
+    challenge: '⚡ Math Sprint 60'
+  };
+
+  if (mathFocusTitle) {
+    mathFocusTitle.textContent = titles[mode] || 'Rocket Math';
+  }
+
+  if (mode === 'practice') setupMathPractice();
+}
+
+mathSubnavButtons.forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    setMathMode(btn.dataset.mathmode);
+  });
+});
+
+const mathBackBtn = document.getElementById('mathBackBtn');
+
+if (mathBackBtn) {
+  mathBackBtn.onclick = function () {
+    document.body.classList.remove('math-focus-active');
+
+    const mathFocusHeader = document.getElementById('mathFocusHeader');
+    if (mathFocusHeader) mathFocusHeader.style.display = 'none';
+
     document.querySelectorAll('.math-mode').forEach(function (sec) {
       sec.style.display = 'none';
     });
-    document.getElementById('math-' + mode).style.display = 'block';
-  }
-    document.body.classList.add('math-focus-active');
 
-    const mathFocusHeader = document.getElementById('mathFocusHeader');
-    const mathFocusTitle = document.getElementById('mathFocusTitle');
+    document.getElementById('math-practice').style.display = 'block';
 
-    if (mathFocusHeader) mathFocusHeader.style.display = 'flex';
-
-    const titles = {
-      practice: '➕ Math Practice',
-      challenge: '⚡ Math Sprint 60'
-    };
-
-    if (mathFocusTitle) {
-      mathFocusTitle.textContent = titles[mode] || 'Quick Math';
-    }
-
-    if (mode === 'practice') setupMathPractice();
-
-  const mathBackBtn = document.getElementById('mathBackBtn');
-
-  if (mathBackBtn) {
-    mathBackBtn.onclick = function () {
-      document.body.classList.remove('math-focus-active');
-
-      const mathFocusHeader = document.getElementById('mathFocusHeader');
-      if (mathFocusHeader) mathFocusHeader.style.display = 'none';
-
-      document.querySelectorAll('.math-mode').forEach(function (sec) {
-        sec.style.display = 'none';
-      });
-
-      document.getElementById('math-practice').style.display = 'block';
-
-      mathSubnavButtons.forEach(function (btn) {
-        btn.classList.toggle('active', btn.dataset.mathmode === 'practice');
-      });
-    };
-  }
+    mathSubnavButtons.forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.mathmode === 'practice');
+    });
+  };
+}
   // ------------------------------
 // Profile UI wiring
 // ------------------------------
