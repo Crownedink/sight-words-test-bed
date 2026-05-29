@@ -698,6 +698,45 @@
      color: var(--accent);
      font-weight: 700;
   }
+
+    /* Rocket Math personality */
+  #view-math .reading-mode-panel {
+    position: relative;
+  }
+
+  #view-math .reading-mode-card[data-mathmode="practice"] {
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.4), transparent 32%),
+      linear-gradient(135deg, rgba(96,165,250,0.32), rgba(129,140,248,0.16));
+  }
+
+  #view-math .reading-mode-card[data-mathmode="challenge"] {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.35), transparent 30%),
+      linear-gradient(135deg, rgba(251,146,60,0.25), rgba(167,139,250,0.22));
+  }
+
+  #view-math .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 25%, rgba(255,255,255,0.45) 0 2px, transparent 3px),
+      radial-gradient(circle at 75% 20%, rgba(255,255,255,0.35) 0 2px, transparent 3px),
+      radial-gradient(circle at 65% 70%, rgba(255,255,255,0.3) 0 1px, transparent 2px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  #view-math .math-problem {
+    position: relative;
+    z-index: 1;
+  }
+
+  #view-math .math-answer {
+    position: relative;
+    z-index: 1;
+  }
     @media (max-width: 640px) {
       header {
         justify-content: flex-start;
@@ -991,22 +1030,21 @@
 
     <!-- Rocket Math VIEW -->
     <section id="view-math" class="view">
-      <h1>➕ Rocket Math</h1>
-      <p class="hint">Practice basic math or try a 60-second sprint. Perfect for quick reps.</p>
-
+      <h1>🚀 Rocket Math</h1>
+      <p class="hint">Launch missions, solve math problems, and power your rocket with stars and coins.</p>
 
 
   <div class="reading-mode-grid">
     <button class="reading-mode-card active" data-mathmode="practice">
-      <div class="mode-emoji">➕</div>
-      <div class="mode-title">Math Practice</div>
-      <div class="mode-subtitle">Take your time and try again</div>
+      <div class="mode-emoji">🚀</div>
+      <div class="mode-title">Mission Practice</div>
+      <div class="mode-subtitle">Solve missions at your own pace</div>>
     </button>
 
     <button class="reading-mode-card" data-mathmode="challenge">
-      <div class="mode-emoji">⚡</div>
-      <div class="mode-title">Math Sprint 60</div>
-      <div class="mode-subtitle">Beat the clock</div>
+      <div class="mode-emoji">☄️</div>
+      <div class="mode-title">Rocket Rush 60</div>
+      <div class="mode-subtitle">Beat the clock before fuel runs out</div>
     </button>
   </div>
 
@@ -2617,7 +2655,7 @@ const DEFAULT_SETS = (function () {
     mathPracticeState.current = generateMathProblem(type, difficulty);
     const p = mathPracticeState.current;
     mathPracticeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
-    mathPracticeAnswerEl.textContent = 'Choose an answer below.';
+    mathPracticeAnswerEl.textContent = '🚀 Solve the mission problem.';
     mathPracticeCard.classList.remove('sparkle');
     const choices = new Set();
     choices.add(p.answer);
@@ -2658,7 +2696,7 @@ const DEFAULT_SETS = (function () {
 
         mathPracticeState.score += 10;
         mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
-        mathPracticeAnswerEl.textContent = 'Correct!';
+        mathPracticeAnswerEl.textContent = 'Fuel Added! 🚀';
         mathPracticeCard.classList.add('sparkle');
         simpleBeep(true);
 
@@ -2673,7 +2711,7 @@ const DEFAULT_SETS = (function () {
         btn.classList.add('incorrect');
         btn.disabled = true;
 
-        mathPracticeAnswerEl.textContent = 'Not quite. Try again!';
+        mathPracticeAnswerEl.textContent = 'Try again, Cadet!';
         simpleBeep(false);
         // No timeout, no auto-advance
       }
@@ -2733,20 +2771,20 @@ const DEFAULT_SETS = (function () {
       current: null,
       answered: []
     };
-    mathChallengeScorePill.textContent = 'Score: 0';
+    mathChallengeScorePill.textContent = 'Mission Score: 0';
     mathChallengeResults.style.display = 'none';
     mathChallengeResultsList.innerHTML = '';
     mathChallengeCard.classList.remove('sparkle');
     if (mathChallengeTimerId) clearInterval(mathChallengeTimerId);
-    mathChallengeTimerEl.textContent = 'Time: 60';
+    mathChallengeTimerEl.textContent = 'Fuel Time: 60';
     mathChallengeTimerId = setInterval(function () {
       if (!mathChallengeState) return;
       mathChallengeState.remaining -= 1;
       if (mathChallengeState.remaining <= 0) {
-        mathChallengeTimerEl.textContent = 'Time: 0';
+        mathChallengeTimerEl.textContent = 'Fuel Time: 0';
         endMathChallenge();
       } else {
-        mathChallengeTimerEl.textContent = 'Time: ' + mathChallengeState.remaining;
+        mathChallengeTimerEl.textContent = 'Fuel Time: ' + mathChallengeState.remaining;
       }
     }, 1000);
     setupMathChallengeQuestion();
@@ -2759,7 +2797,7 @@ const DEFAULT_SETS = (function () {
     mathChallengeState.current = generateMathProblem(type, difficulty);
     const p = mathChallengeState.current;
     mathChallengeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
-    mathChallengeAnswerEl.textContent = 'Choose an answer.';
+    mathChallengeAnswerEl.textContent = 'Complete the rocket mission.';
     mathChallengeCard.classList.remove('sparkle');
     const choices = new Set();
     choices.add(p.answer);
@@ -2795,14 +2833,14 @@ const DEFAULT_SETS = (function () {
 
       if (correct) {
         mathChallengeState.score += 10;
-        mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
-        mathChallengeAnswerEl.textContent = 'Correct!';
+        mathChallengeScorePill.textContent = 'Mission Score: ' + mathChallengeState.score;
+        mathChallengeAnswerEl.textContent = 'Mission Complete! ⭐';
         mathChallengeCard.classList.add('sparkle');
         awardXpCoins(10, 4, 1); // xp, coins, stars (we’ll update function)
         unlockAchievement("first_math_sprint_correct");
         simpleBeep(true);
       } else {
-        mathChallengeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
+        mathChallengeAnswerEl.textContent = 'Mission missed. Correct answer: ' + p.answer + '.';
         mathChallengeCard.classList.remove('sparkle');
         simpleBeep(false);
       }
@@ -2966,8 +3004,8 @@ function setMathMode(mode) {
   if (mathFocusHeader) mathFocusHeader.style.display = 'flex';
 
   const titles = {
-    practice: '➕ Math Practice',
-    challenge: '⚡ Math Sprint 60'
+    practice: '🚀 Mission Practice',
+    challenge: '☄️ Rocket Rush 60'
   };
 
   if (mathFocusTitle) {
