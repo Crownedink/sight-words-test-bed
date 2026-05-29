@@ -737,6 +737,24 @@
     position: relative;
     z-index: 1;
   }
+
+    .rocket-guide {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+  .rocket-guide-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    background: rgba(96,165,250,0.18);
+    border: 1px solid rgba(96,165,250,0.35);
+  }
     @media (max-width: 640px) {
       header {
         justify-content: flex-start;
@@ -1032,6 +1050,14 @@
     <section id="view-math" class="view">
       <h1>🚀 Rocket Math</h1>
       <p class="hint">Launch missions, solve math problems, and power your rocket with stars and coins.</p>
+
+   <div id="novaGuide" class="settings-group rocket-guide">
+    <div class="rocket-guide-avatar">👩‍🚀</div>
+    <div>
+      <strong>Nova says:</strong>
+       <div id="novaMessage" class="hint">Choose a mission to begin, Cadet.</div>
+    </div>
+  </div>
 
 
   <div class="reading-mode-grid">
@@ -2690,6 +2716,17 @@ const DEFAULT_SETS = (function () {
            b.disabled = true;
           });
 
+   const novaMessageEl = document.getElementById('novaMessage');
+
+  function novaSays(message) {
+    if (!novaMessageEl) return;
+    novaMessageEl.textContent = message;
+  }
+
+  function novaSpeak(message) {
+    novaSays(message);
+    speak(message);
+  }
 // reward only once (NOT inside the forEach)
         awardXpCoins(5, 2, 1);
         unlockAchievement("first_math_correct");
@@ -2698,6 +2735,7 @@ const DEFAULT_SETS = (function () {
         mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
         mathPracticeAnswerEl.textContent = 'Fuel Added! 🚀';
         mathPracticeCard.classList.add('sparkle');
+        novaSpeak('Fuel added! Great work, Cadet.');
         simpleBeep(true);
 
         // Wait 3 seconds, then go to next problem
@@ -2712,6 +2750,7 @@ const DEFAULT_SETS = (function () {
         btn.disabled = true;
 
         mathPracticeAnswerEl.textContent = 'Try again, Cadet!';
+        novaSays('No problem. Try another answer.');
         simpleBeep(false);
         // No timeout, no auto-advance
       }
@@ -2836,12 +2875,14 @@ const DEFAULT_SETS = (function () {
         mathChallengeScorePill.textContent = 'Mission Score: ' + mathChallengeState.score;
         mathChallengeAnswerEl.textContent = 'Mission Complete! ⭐';
         mathChallengeCard.classList.add('sparkle');
+        novaSpeak('Mission complete! Keep flying.');
         awardXpCoins(10, 4, 1); // xp, coins, stars (we’ll update function)
         unlockAchievement("first_math_sprint_correct");
         simpleBeep(true);
       } else {
         mathChallengeAnswerEl.textContent = 'Mission missed. Correct answer: ' + p.answer + '.';
         mathChallengeCard.classList.remove('sparkle');
+        novaSays('That mission missed. Lock onto the next one.');
         simpleBeep(false);
       }
 
@@ -3013,8 +3054,11 @@ function setMathMode(mode) {
   }
 
   if (mode === 'practice') setupMathPractice();
-}
+  }
 
+  if (mode === 'practice') novaSpeaks('Take your time. Every solved mission powers the rocket.');
+  if (mode === 'challenge') novaSpeaks('Rocket Rush is fast! Solve as many missions as you can.');
+  
 mathSubnavButtons.forEach(function (btn) {
   btn.addEventListener('click', function () {
     setMathMode(btn.dataset.mathmode);
