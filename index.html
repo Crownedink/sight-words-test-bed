@@ -699,6 +699,136 @@
      font-weight: 700;
   }
 
+    /* Rocket Math atmosphere */
+#view-math {
+  position: relative;
+  overflow: hidden;
+}
+
+#view-math::before,
+#view-math::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#view-math > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* drifting star field */
+#view-math::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,255,255,0.9) 0 2px, transparent 3px),
+    radial-gradient(circle at 28% 62%, rgba(255,255,255,0.55) 0 1px, transparent 2px),
+    radial-gradient(circle at 52% 24%, rgba(255,255,255,0.7) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 74% 48%, rgba(255,255,255,0.6) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 88% 20%, rgba(255,255,255,0.7) 0 1px, transparent 2px);
+  opacity: 0.28;
+  animation: rocketStarsDrift 18s linear infinite;
+}
+
+/* soft planet / moon glow */
+#view-math::after {
+  width: 110px;
+  height: 110px;
+  right: -28px;
+  top: 68px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.75), transparent 22%),
+    radial-gradient(circle at center, rgba(147,197,253,0.35), rgba(129,140,248,0.12) 65%, transparent 70%);
+  opacity: 0.65;
+  animation: rocketPlanetFloat 9s ease-in-out infinite;
+}
+
+body.theme-light #view-math::before {
+  opacity: 0.22;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,255,255,0.9) 0 2px, transparent 3px),
+    radial-gradient(circle at 28% 62%, rgba(96,165,250,0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 52% 24%, rgba(255,255,255,0.75) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 74% 48%, rgba(129,140,248,0.45) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 88% 20%, rgba(255,255,255,0.8) 0 1px, transparent 2px);
+}
+
+body.theme-light #view-math::after {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), transparent 22%),
+    radial-gradient(circle at center, rgba(96,165,250,0.28), rgba(186,230,253,0.18) 65%, transparent 70%);
+  opacity: 0.5;
+}
+
+body.theme-dark #view-math::before {
+  opacity: 0.35;
+}
+
+body.theme-dark #view-math::after {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.75), transparent 22%),
+    radial-gradient(circle at center, rgba(96,165,250,0.38), rgba(79,70,229,0.22) 65%, transparent 72%);
+  opacity: 0.72;
+}
+
+@keyframes rocketStarsDrift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(26px);
+  }
+}
+
+@keyframes rocketPlanetFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(12px) scale(1.04);
+  }
+}
+
+  .rocket-shooting-star {
+    position: absolute;
+    top: 92px;
+    left: -80px;
+    width: 70px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95));
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    animation: rocketShootingStar 8s ease-in-out infinite;
+  }
+
+body.theme-light .rocket-shooting-star {
+  background: linear-gradient(90deg, transparent, rgba(96,165,250,0.75));
+}
+
+body.theme-dark .rocket-shooting-star {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95));
+}
+
+@keyframes rocketShootingStar {
+  0%, 72% {
+    transform: translateX(0) translateY(0) rotate(-18deg);
+    opacity: 0;
+  }
+  76% {
+    opacity: 0.85;
+  }
+  88% {
+    transform: translateX(110vw) translateY(140px) rotate(-18deg);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
     /* Rocket Math personality */
   #view-math .reading-mode-panel {
     position: relative;
@@ -1048,6 +1178,7 @@
 
     <!-- Rocket Math VIEW -->
     <section id="view-math" class="view">
+    <div class="rocket-shooting-star"></div>  
       <h1>🚀 Rocket Math</h1>
       <p class="hint">Launch missions, solve math problems, and power your rocket with stars and coins.</p>
 
