@@ -2586,7 +2586,18 @@ const DEFAULT_SETS = (function () {
     renderSwLeaderboardPage();
     swChallengeState = null;
   }
+//Nova functionality
+   const novaMessageEl = document.getElementById('novaMessage');
 
+  function novaSays(message) {
+    if (!novaMessageEl) return;
+    novaMessageEl.textContent = message;
+  }
+
+  function novaSpeak(message) {
+    novaSays(message);
+    speak(message);
+  }
   // Rocket Math practice
   const mathPracticeTypeSel = document.getElementById('mathPracticeType');
   const mathPracticeDifficultySel = document.getElementById('mathPracticeDifficulty');
@@ -2716,17 +2727,7 @@ const DEFAULT_SETS = (function () {
            b.disabled = true;
           });
 
-   const novaMessageEl = document.getElementById('novaMessage');
-
-  function novaSays(message) {
-    if (!novaMessageEl) return;
-    novaMessageEl.textContent = message;
-  }
-
-  function novaSpeak(message) {
-    novaSays(message);
-    speak(message);
-  }
+  
 // reward only once (NOT inside the forEach)
         awardXpCoins(5, 2, 1);
         unlockAchievement("first_math_correct");
