@@ -680,9 +680,13 @@
   font-weight: 700;
 }
 
-  .math-focus-active #mathAdventureHub {
-     display: none !important;
-   }
+  body.math-focus-active #mathAdventureHub {
+    display: none !important;
+}
+
+ body.math-focus-active .reading-mode-card[data-mathmode] {
+  display: none !important;
+}
 
    #mathFocusHeader {
      margin: 0.75rem 0;
