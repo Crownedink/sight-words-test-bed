@@ -885,6 +885,55 @@ body.theme-dark .rocket-shooting-star {
     background: rgba(96,165,250,0.18);
     border: 1px solid rgba(96,165,250,0.35);
   }
+
+  .rocket-reward-burst {
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+.reward-star {
+  position: absolute;
+  font-size: 1.4rem;
+  animation: rewardStarFloat 0.9s ease-out forwards;
+}
+
+@keyframes rewardStarFloat {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-70px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.rocket-guide-avatar.nova-happy {
+  animation: novaPop 0.35s ease-out;
+}
+
+.rocket-guide-avatar.nova-thinking {
+  animation: novaWiggle 0.35s ease-out;
+}
+
+@keyframes novaPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes novaWiggle {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-6deg); }
+  70% { transform: rotate(6deg); }
+}
     @media (max-width: 640px) {
       header {
         justify-content: flex-start;
@@ -1179,11 +1228,12 @@ body.theme-dark .rocket-shooting-star {
     <!-- Rocket Math VIEW -->
     <section id="view-math" class="view">
     <div class="rocket-shooting-star"></div>  
+    <div id="rocketRewardBurst" class="rocket-reward-burst"></div>
       <h1>🚀 Rocket Math</h1>
       <p class="hint">Launch missions, solve math problems, and power your rocket with stars and coins.</p>
 
    <div id="novaGuide" class="settings-group rocket-guide">
-    <div class="rocket-guide-avatar">👩‍🚀</div>
+    <div id="novaAvatar" class="rocket-guide-avatar">👩‍🚀</div>
     <div>
       <strong>Nova says:</strong>
        <div id="novaMessage" class="hint">Choose a mission to begin, Cadet.</div>
@@ -2729,6 +2779,65 @@ const DEFAULT_SETS = (function () {
     novaSays(message);
     speak(message);
   }
+
+  const novaAvatarEl = document.getElementById('novaAvatar');
+const rocketRewardBurstEl = document.getElementById('rocketRewardBurst');
+
+let rocketMathStreak = 0;
+
+function setNovaMood(mood) {
+  if (!novaAvatarEl) return;
+
+  novaAvatarEl.classList.remove('nova-happy', 'nova-thinking');
+
+  if (mood === 'happy') {
+    novaAvatarEl.textContent = '👩‍🚀😄';
+    novaAvatarEl.classList.add('nova-happy');
+  } else if (mood === 'thinking') {
+    novaAvatarEl.textContent = '👩‍🚀🤔';
+    novaAvatarEl.classList.add('nova-thinking');
+  } else if (mood === 'rush') {
+    novaAvatarEl.textContent = '👩‍🚀🚀';
+  } else {
+    novaAvatarEl.textContent = '👩‍🚀';
+  }
+
+  setTimeout(function () {
+    if (novaAvatarEl) novaAvatarEl.textContent = '👩‍🚀';
+    novaAvatarEl.classList.remove('nova-happy', 'nova-thinking');
+  }, 900);
+}
+
+function showRocketRewardBurst() {
+  if (!rocketRewardBurstEl) return;
+
+  rocketRewardBurstEl.innerHTML = '';
+
+  const items = ['⭐', '✨', '⭐', '+1'];
+
+  items.forEach(function (item, idx) {
+    const el = document.createElement('div');
+    el.className = 'reward-star';
+    el.textContent = item;
+    el.style.left = (idx * 22 - 30) + 'px';
+    el.style.top = (idx % 2 === 0 ? 0 : 18) + 'px';
+    el.style.animationDelay = (idx * 0.08) + 's';
+    rocketRewardBurstEl.appendChild(el);
+  });
+
+  setTimeout(function () {
+    rocketRewardBurstEl.innerHTML = '';
+  }, 1200);
+}
+
+function updateRocketStreak(correct) {
+  if (correct) rocketMathStreak += 1;
+  else rocketMathStreak = 0;
+
+  if (rocketMathStreak > 0 && rocketMathStreak % 3 === 0) {
+    novaSays('Amazing flying, Cadet! Streak x' + rocketMathStreak + '!');
+  }
+}
   // Rocket Math practice
   const mathPracticeTypeSel = document.getElementById('mathPracticeType');
   const mathPracticeDifficultySel = document.getElementById('mathPracticeDifficulty');
@@ -2868,6 +2977,9 @@ const DEFAULT_SETS = (function () {
         mathPracticeAnswerEl.textContent = 'Fuel Added! 🚀';
         mathPracticeCard.classList.add('sparkle');
         novaSays('Fuel added! Great work, Cadet.');
+        setNovaMood('happy');
+        showRocketRewardBurst();
+        updateRocketStreak(true);
         simpleBeep(true);
 
         // Wait 3 seconds, then go to next problem
@@ -2883,6 +2995,8 @@ const DEFAULT_SETS = (function () {
 
         mathPracticeAnswerEl.textContent = 'Try again, Cadet!';
         novaSays('No problem. Try another answer.');
+        setNovaMood('thinking');
+        updateRocketStreak(false);
         simpleBeep(false);
         // No timeout, no auto-advance
       }
@@ -3008,6 +3122,9 @@ const DEFAULT_SETS = (function () {
         mathChallengeAnswerEl.textContent = 'Mission Complete! ⭐';
         mathChallengeCard.classList.add('sparkle');
         novaSays('Mission complete! Keep flying.');
+        setNovaMood('rush');
+        showRocketRewardBurst();
+        updateRocketStreak(true);
         awardXpCoins(10, 4, 1); // xp, coins, stars (we’ll update function)
         unlockAchievement("first_math_sprint_correct");
         simpleBeep(true);
@@ -3015,6 +3132,8 @@ const DEFAULT_SETS = (function () {
         mathChallengeAnswerEl.textContent = 'Mission missed. Correct answer: ' + p.answer + '.';
         mathChallengeCard.classList.remove('sparkle');
         novaSays('That mission missed. Lock onto the next one.');
+        setNovaMood('thinking');
+        updateRocketStreak(false);
         simpleBeep(false);
       }
 
