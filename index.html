@@ -59,6 +59,171 @@
       --card-shadow-soft: rgba(90,140,200,.15);
     }
 
+    /* =========================================
+   LAYERED SKY BACKGROUND
+========================================= */
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background environment behind the app */
+.sky-environment {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Keep app content above the sky */
+.app {
+  position: relative;
+  z-index: 2;
+}
+
+.sky-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* -------------------------
+   BASE SKY
+------------------------- */
+
+.sky-base {
+  background-image: url("./assets/backgrounds/dark-sky.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* -------------------------
+   CLOUD LAYERS
+------------------------- */
+
+.clouds-far,
+.clouds-near {
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+/* Dark mode default */
+.clouds-far {
+  background-image: url("./assets/backgrounds/dark-clouds-far.png");
+  opacity: 0.65;
+}
+
+.clouds-near {
+  background-image: url("./assets/backgrounds/dark-clouds-near.png");
+  opacity: 0.82;
+}
+
+/* Light mode image swaps */
+body.theme-light .sky-base {
+  background-image: url("./assets/backgrounds/light-sky.png");
+}
+
+body.theme-light .clouds-far {
+  background-image: url("./assets/backgrounds/light-clouds-far.png");
+  opacity: 0.68;
+}
+
+body.theme-light .clouds-near {
+  background-image: url("./assets/backgrounds/light-clouds-near.png");
+  opacity: 0.86;
+}
+
+    /* =========================================
+   SKY PARALLAX MOTION
+========================================= */
+
+/* Far clouds move slowly */
+.clouds-far-a {
+  animation: farCloudA 100s linear infinite;
+}
+
+.clouds-far-b {
+  animation: farCloudB 100s linear infinite;
+}
+
+/* Near clouds move faster */
+.clouds-near-a {
+  animation: nearCloudA 62s linear infinite;
+}
+
+.clouds-near-b {
+  animation: nearCloudB 62s linear infinite;
+}
+
+/* Far pair */
+@keyframes farCloudA {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes farCloudB {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Near pair */
+@keyframes nearCloudA {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes nearCloudB {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+    @media (prefers-reduced-motion: reduce) {
+  .clouds-far-a,
+  .clouds-far-b,
+  .clouds-near-a,
+  .clouds-near-b {
+    animation: none !important;
+  }
+
+  .clouds-far-b,
+  .clouds-near-b {
+    display: none;
+  }
+}
+    
     * { box-sizing: border-box; }
    html, body {
     margin: 0;
@@ -84,20 +249,23 @@
     pointer-events: none;
     z-index: 0;
 
-    background:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.85) 0, rgba(255,255,255,0) 110px),
-      radial-gradient(circle at 70% 18%, rgba(255,255,255,0.7) 0, rgba(255,255,255,0) 90px),
-      radial-gradient(circle at 45% 8%, rgba(255,255,255,0.55) 0, rgba(255,255,255,0) 70px);
-    animation: floatSky 10s ease-in-out infinite;
+   html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
   }
 
     body.theme-dark::before {
-      background:
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.22) 0, rgba(255,255,255,0) 90px),
-        radial-gradient(circle at 72% 16%, rgba(190,220,255,0.18) 0, rgba(190,220,255,0) 110px),
-        radial-gradient(circle at 45% 10%, rgba(255,240,200,0.16) 0, rgba(255,240,200,0) 75px),
-        radial-gradient(circle at 82% 42%, rgba(165,210,255,0.12) 0, rgba(165,210,255,0) 130px);
-    }
+      html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
     
   .app {
     position: relative;
@@ -986,6 +1154,16 @@ body.theme-dark .rocket-fuel-track {
   </style>
 </head>
 <body>
+  <div id="skyEnvironment" class="sky-environment" aria-hidden="true">
+  <div class="sky-layer sky-base"></div>
+
+  <div class="sky-layer clouds-far clouds-far-a"></div>
+  <div class="sky-layer clouds-far clouds-far-b"></div>
+
+  <div class="sky-layer clouds-near clouds-near-a"></div>
+  <div class="sky-layer clouds-near clouds-near-b"></div>
+</div>
+  
 <div class="app">
   <header>
     <button id="menuToggle" class="menu-btn">☰ Menu</button>
